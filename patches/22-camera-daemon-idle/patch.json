@@ -1,0 +1,30 @@
+{
+  "name": "Kirin CameraDaemon disabled",
+  "default": true,
+  "description": "Huawei's CameraDaemon only works with the Kirin ISP and crash-loops on Snapdragon. Replaced by an idle placeholder and stopped at boot; patch 47 provides the camera service instead.",
+  "vendor_files": [
+    {
+      "src": "files/bin/CameraDaemon",
+      "dst": "bin/CameraDaemon",
+      "mode": "0755",
+      "only_if_exists": true
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "early-boot",
+        "cmds": [
+          "stop CameraDaemon"
+        ]
+      },
+      {
+        "name": "boot",
+        "cmds": [
+          "stop CameraDaemon"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

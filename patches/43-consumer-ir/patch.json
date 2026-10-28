@@ -1,0 +1,17 @@
+{
+  "name": "IR blaster",
+  "default": true,
+  "description": "The consumer IR HDI service loads a small driver that sends the patterns through the sweet IR LED (ir-spi, /dev/lirc0) instead of Huawei's IR chip.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libconsumerir.so",
+      "dst": "lib64/libconsumerir.so",
+      "mode": "0644"
+    }
+  ],
+  "ueventd": [
+    "# hmos2sweet: IR LED",
+    "/dev/lirc0 0666 0 1000"
+  ],
+  "requires": []
+}

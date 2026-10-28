@@ -1,0 +1,13 @@
+{
+  "name": "Lock screen without TEE (swipe to unlock)",
+  "default": true,
+  "description": "sweet has no iTrustee: Huawei's user_auth CA library blocks forever and the lock screen asks for a PIN that was never set. This stub answers 'no credentials enrolled' so the lock screen is swipe-only. PIN/fingerprint/face cannot be enrolled.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libuserauth_daemon.z.so",
+      "dst": "lib64/libuserauth_daemon.z.so",
+      "mode": "0644"
+    }
+  ],
+  "requires": []
+}

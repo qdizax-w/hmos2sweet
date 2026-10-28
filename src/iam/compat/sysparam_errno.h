@@ -1,0 +1,5 @@
+#ifndef SWEET_COMPAT_SYSPARAM_ERRNO_H
+#define SWEET_COMPAT_SYSPARAM_ERRNO_H
+#define EC_SUCCESS 0
+#define EC_FAILURE (-1)
+#endif

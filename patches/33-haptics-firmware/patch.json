@@ -1,0 +1,28 @@
+{
+  "name": "Vibration motor",
+  "default": true,
+  "description": "aw8624 haptic driver firmware from the sweet ROM; the kernel also exposes the motor as /sys/class/leds/vibrator, which the vibrator HDI uses for timed vibrations (ringtone, notifications, touch feedback).",
+  "sweet_blobs": [
+    {
+      "from": "firmware/aw8624_haptic.bin",
+      "to": "firmware/aw8624_haptic.bin"
+    },
+    {
+      "from": "firmware/aw8624_rtp.bin",
+      "to": "firmware/aw8624_rtp.bin"
+    }
+  ],
+  "requires": [],
+  "init": {
+    "jobs": [
+      {
+        "name": "boot",
+        "cmds": [
+          "chmod 0666 /sys/class/leds/vibrator/activate",
+          "chmod 0666 /sys/class/leds/vibrator/duration",
+          "chmod 0666 /sys/class/leds/vibrator/state"
+        ]
+      }
+    ]
+  }
+}

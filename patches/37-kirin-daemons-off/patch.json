@@ -1,0 +1,33 @@
+{
+  "name": "Kirin-only vendor daemons off",
+  "default": true,
+  "description": "Huawei vendor daemons that only talk to Kirin hardware (touch THP, ISP and sensorhub logs, Balong modem, HiSilicon battery management, NPU, TEE/RPMB, DDR inspection, USB Type-C port, power control, media) are not started any more. On sweet they crash in a loop, eat CPU and fill the log. Their init files are removed from vendor.img. Their init cfgs also wait up to 5 s each for Kirin device nodes that never appear (about 25 s of boot time): those waits are removed.",
+  "vendor_remove": [
+    "etc/init/aptouch_daemon.cfg",
+    "etc/init/atcmdserver.normal.cfg",
+    "etc/init/bms_alarm.cfg",
+    "etc/init/bms_auth.cfg",
+    "etc/init/bms_behavior.cfg",
+    "etc/init/bms_event.cfg",
+    "etc/init/bms_heating.cfg",
+    "etc/init/bms_logcat.cfg",
+    "etc/init/bms_soc.cfg",
+    "etc/init/bms_thermal.cfg",
+    "etc/init/ddr_inspect.cfg",
+    "etc/init/fcs.normal.cfg",
+    "etc/init/hiai_server.cfg",
+    "etc/init/himediacomm.cfg",
+    "etc/init/hinetmanager.cfg",
+    "etc/init/hisecd.cfg",
+    "etc/init/interactRpmb.cfg",
+    "etc/init/isplogcat.cfg",
+    "etc/init/oeminfo_nvme.cfg",
+    "etc/init/powerct.cfg",
+    "etc/init/shlogd_service.cfg",
+    "etc/init/storage_info.cfg",
+    "etc/init/usb_port.cfg",
+    "etc/init/usb_port_set_mode.cfg"
+  ],
+  "requires": [],
+  "hook": "hook.py"
+}

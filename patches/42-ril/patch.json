@@ -1,0 +1,19 @@
+{
+  "name": "Telephony (RIL over the Qualcomm modem) - EXPERIMENTAL",
+  "default": true,
+  "requires": [
+    "30-remoteproc",
+    "32-wifi"
+  ],
+  "description": "Replaces Huawei's Balong RIL vendor library with one that talks QMI to the sweet modem over QRTR: SIM card (status, PIN/PUK, file access, IMSI/ICCID), network registration, signal, operator name, network selection and preferred network type, network time, voice calls (dial, answer, reject, hold/swap/conference, DTMF), SMS (send, receive, status reports, SMSC) and mobile data (QMI WDS on the IPA rmnet_data0..3 interfaces that sweet-rproc creates). SIM 2 is reported but not registered. No VoLTE/IMS.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libril_msgtransfer.z.so",
+      "dst": "lib64/libril_msgtransfer.z.so",
+      "mode": "0644"
+    }
+  ],
+  "markers": [
+    "etc/sweet/feature_ril"
+  ]
+}

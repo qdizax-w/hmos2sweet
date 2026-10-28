@@ -1,0 +1,33 @@
+{
+  "name": "Audio: speakers, earpiece, headphones, microphone",
+  "default": true,
+  "requires": [
+    "30-remoteproc"
+  ],
+  "description": "tinyalsa-based audio HAL (OpenHarmony VDI) for the sm6150 sound card and the two Awinic speaker amplifiers, using the sweet mixer paths. The audio policy is trimmed to what the hardware can do (no MMAP/offload/hotword pipes). Use it together with 'ADSP sensors domain', otherwise the DSP restarts every ~40 s.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libaudio_primary_impl.z.so",
+      "dst": "lib64/libaudio_primary_impl.z.so",
+      "mode": "0644"
+    }
+  ],
+  "sweet_blobs": [
+    {
+      "from": "etc/mixer_paths_idp.xml",
+      "to": "etc/sweet/mixer_paths_idp.xml"
+    },
+    {
+      "from": "etc/mixer_paths_overlay_static.xml",
+      "to": "etc/sweet/mixer_paths_overlay_static.xml"
+    },
+    {
+      "from": "firmware/awinic/",
+      "to": "firmware/awinic/"
+    }
+  ],
+  "markers": [
+    "etc/sweet/feature_audio"
+  ],
+  "hook": "hook.py"
+}

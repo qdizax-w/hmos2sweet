@@ -1,0 +1,43 @@
+{
+  "name": "NFC (NXP PN553 through Huawei's NXP HAL)",
+  "default": true,
+  "description": "sweet's NFC controller (NXP PN553, Qualcomm nq-nci driver, /dev/nq-nci) is driven by the HarmonyOS NFC stack through Huawei's own NXP HAL (libnfc_hal_impl_t001) and NCI stack (libnfc_nci_t001). The kernel provides the /sys/nfc attributes those read (chip type 'sn110u' selects the NXP libraries, device node, configuration names); the sn110 configuration files in chip_prod are replaced by sweet's PN553 one at boot, and the NFC firmware library is hidden so that the HAL never tries to flash SN110 firmware into the PN553.",
+  "vendor_files": [
+    {
+      "src": "files/etc/sweet/nfc/libnfc-nxp-sweet.conf",
+      "dst": "etc/sweet/nfc/libnfc-nxp-sweet.conf",
+      "mode": "0644"
+    },
+    {
+      "src": "files/etc/sweet/nfc/no_nfc_firmware.so",
+      "dst": "etc/sweet/nfc/no_nfc_firmware.so",
+      "mode": "0644"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount none /vendor/etc/sweet/nfc/libnfc-nxp-sweet.conf /chip_prod/etc/libnfc-nxp-sn110.conf bind",
+          "mount none /vendor/etc/sweet/nfc/libnfc-nxp-sweet.conf /chip_prod/etc/libnfc-nxp-sn110_RF.conf bind",
+          "mount none /vendor/etc/sweet/nfc/no_nfc_firmware.so /chip_prod/etc/firmware/libsn100u_fw.so bind"
+        ]
+      },
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "mkdir /data/nfc 0770 nfc nfc",
+          "mkdir /data/vendor/nfc 0770 nfc nfc",
+          "symlink /dev/nq-nci /dev/pn544",
+          "symlink /dev/nq-nci /dev/pn54x"
+        ]
+      }
+    ]
+  },
+  "ueventd": [
+    "# hmos2sweet: NFC controller",
+    "/dev/nq-nci 0666 0 1000"
+  ],
+  "requires": []
+}

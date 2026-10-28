@@ -1,0 +1,45 @@
+{
+  "name": "Remove the setup wizard (skip first-boot setup)",
+  "default": false,
+  "description": "Removes HwStartupGuide from system.img (the original files are saved next to the output in removed/) and marks the first-boot setup as done in the settings database. Use it while WiFi does not work: the wizard cannot be completed without a WiFi connection.",
+  "system_remove": [
+    "system/app/HwStartupGuide",
+    "system/etc/noticeFile/HwStartupGuide_OpenSource.html"
+  ],
+  "vendor_files": [
+    {
+      "src": "files/bin/sweet-oobedone",
+      "dst": "bin/sweet-oobedone",
+      "mode": "0755"
+    }
+  ],
+  "hook": "hook.py",
+  "init": {
+    "jobs": [
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "start sweet_oobedone"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "sweet_oobedone",
+        "path": [
+          "/vendor/bin/sweet-oobedone"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "once": 1,
+        "sandbox": 0
+      }
+    ]
+  },
+  "requires": []
+}

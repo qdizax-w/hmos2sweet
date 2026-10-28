@@ -1,0 +1,13 @@
+{
+  "name": "Software key store (HUKS without TEE)",
+  "default": true,
+  "description": "Replaces the TEE-backed HUKS CA library with OpenHarmony's HUKS core on OpenSSL (software root key). Needed by account, settings and app data encryption services.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/chipsetsdk/libhuks_ca_hdi.z.so",
+      "dst": "lib64/chipsetsdk/libhuks_ca_hdi.z.so",
+      "mode": "0644"
+    }
+  ],
+  "requires": []
+}

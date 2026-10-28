@@ -1,0 +1,39 @@
+{
+  "name": "Bluetooth (WCN3990) - EXPERIMENTAL",
+  "default": true,
+  "requires": [
+    "30-remoteproc"
+  ],
+  "description": "Vendor library for the HarmonyOS Bluetooth HCI service: powers the WCN3990 through btpower, loads its ROM patch and NVM from the bluetooth partition and hands /dev/ttyHS0 (3 Mbaud H4) to the stack.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libbt_vendor.z.so",
+      "dst": "lib64/libbt_vendor.z.so",
+      "mode": "0644"
+    }
+  ],
+  "vendor_dirs": [
+    {
+      "dst": "bt_firmware",
+      "mode": "0755"
+    }
+  ],
+  "markers": [
+    "etc/sweet/feature_bt"
+  ],
+  "ueventd": [
+    "# hmos2sweet: Bluetooth UART and power control",
+    "/dev/ttyHS0 0666 0 1002",
+    "/dev/btpower 0666 0 1002"
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount vfat /dev/block/by-name/bluetooth /vendor/bt_firmware ro nosuid nodev shortname=lower,uid=0,gid=0,dmask=0222,fmask=0333"
+        ]
+      }
+    ]
+  }
+}

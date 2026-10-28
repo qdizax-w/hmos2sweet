@@ -1,0 +1,14 @@
+#!/bin/bash
+# clang wrapper for the HarmonyOS 5.x userspace: aarch64, OHOS musl, libc++ with
+# the "__h" ABI namespace used by HarmonyOS. Needs clang >= 15 and lld.
+# SYSROOT comes from build/make_sysroot.sh.
+S=${SYSROOT:?run build/make_sysroot.sh and export SYSROOT}
+CC=clang; case "$(basename "$0")" in *++) CC=clang++;; esac
+R=$($CC -print-resource-dir)
+link=1; shared=0
+for a in "$@"; do case "$a" in -c|-S|-E|-M|-MM) link=0;; -shared) shared=1;; esac; done
+common=(--target=aarch64-linux-ohos --sysroot=$S -nostdinc -isystem $S/usr/include/c++/v1 -isystem $R/include -isystem $S/usr/include -fPIC -mno-outline-atomics)
+if [ $link = 0 ]; then exec $CC "${common[@]}" "$@"; fi
+pre=(); post=($S/usr/lib/libclang_rt.builtins.a)
+if [ $shared = 0 ]; then pre=($S/usr/lib/Scrt1.o $S/usr/lib/crti.o); post=(-lc $S/usr/lib/libclang_rt.builtins.a $S/usr/lib/crtn.o); fi
+exec $CC "${common[@]}" -fuse-ld=lld -nostdlib -L$S/usr/lib -Wl,--dynamic-linker=/lib/ld-musl-aarch64.so.1 -Wl,--undefined-version "${pre[@]}" "$@" "${post[@]}"

@@ -1,0 +1,23 @@
+{
+  "name": "render_service: stop polling the Kirin camera vsync service",
+  "default": true,
+  "description": "render_service looks up the camera HAL's chipset_vsync_service on every frame until it finds it. On sweet it never exists, so that cost a failed HDI lookup about 30 times a second. A small replacement libchipset_vsync reports it as connected once and ignores the updates.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libchipset_vsync_sweet.z.so",
+      "dst": "lib64/libchipset_vsync_sweet.z.so",
+      "mode": "0644"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount none /vendor/lib64/libchipset_vsync_sweet.z.so /system/lib64/libchipset_vsync.z.so bind"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

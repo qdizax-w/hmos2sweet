@@ -1,0 +1,15 @@
+{
+  "name": "Sensors for apps: accelerometer, gyroscope, compass, light, rotation",
+  "default": true,
+  "requires": [
+    "34-sensors-pd"
+  ],
+  "description": "Replaces Huawei's sensor VDI (Kirin sensorhub) with one that talks to the Snapdragon Sensor Core on the ADSP over QRTR/QMI, the way Android's sensor HAL does: accelerometer, gyroscope, magnetometer, ambient light, gravity (from the SSC or computed from the accelerometer, used for auto-rotation), rotation and game rotation vectors. Sensors appear a few seconds after boot, when the ADSP sensor domain is up. The proximity sensor of sweet is ultrasonic (audio DSP) and is not included.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libhdi_sensor_impl.z.so",
+      "dst": "lib64/libhdi_sensor_impl.z.so",
+      "mode": "0644"
+    }
+  ]
+}

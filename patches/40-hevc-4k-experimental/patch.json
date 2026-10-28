@@ -1,0 +1,18 @@
+{
+  "name": "HEVC decoder size limit (EXPERIMENTAL, no effect yet)",
+  "default": false,
+  "experimental": true,
+  "description": "Byte-patches the software HEVC decoder capabilities (1920 -> 4095) for the boot animation video. Only applies to known decoder builds; the media service still enforces 1920x1920, so this does not help yet.",
+  "hook": "hook.py",
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount none /vendor/etc/sweet/libhevc_decoder.z.so /system/lib64/libhevc_decoder.z.so bind"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

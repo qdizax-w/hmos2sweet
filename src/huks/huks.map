@@ -1,0 +1,7 @@
+1.0 {
+  global:
+    HuksHdi*;
+    HuksCreateHdiDevicePtr;
+    HuksDestoryHdiDevicePtr;
+  local: *;
+};

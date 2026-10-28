@@ -1,0 +1,37 @@
+{
+  "name": "Display: DRM/KMS composer + buffer allocator",
+  "default": true,
+  "description": "Replaces Huawei's display HALs with a DRM/KMS composer (atomic commits, vblank, 60/120 Hz modes, DPMS + backlight) and a dma-buf allocator for the sweet panel. Without it there is no picture.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/libdisplay_composer_vdi_impl.z.so",
+      "dst": "lib64/libdisplay_composer_vdi_impl.z.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/lib64/libdisplay_buffer_vdi_impl.z.so",
+      "dst": "lib64/libdisplay_buffer_vdi_impl.z.so",
+      "mode": "0644"
+    }
+  ],
+  "ueventd": [
+    "# hmos2sweet: msm DRM nodes used by the display HALs and Mesa",
+    "/dev/dri/card0 0666 0 1003",
+    "/dev/dri/renderD128 0666 0 1003",
+    "/dev/dri/controlD64 0660 0 1003"
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "chown system system /sys/class/backlight/panel0-backlight/brightness",
+          "chmod 0666 /sys/class/backlight/panel0-backlight/brightness",
+          "chmod 0666 /dev/dri/card0",
+          "chmod 0666 /dev/dri/renderD128"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

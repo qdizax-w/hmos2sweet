@@ -1,0 +1,717 @@
+{
+  "name": "Camera (Android CamX HAL through a bridge) - EXPERIMENTAL",
+  "default": true,
+  "description": "sweet's camera sensors, ISP and JPEG encoder only work through Qualcomm's Android camera HAL (CamX, camera.qcom.so). sweetcam-launch runs it in a private mount namespace that looks like a minimal Android (/system, /vendor, /apex from /vendor/android, an Android property area) inside cambridge, a small bionic program that drives the camera3 HAL and hands the frames over a unix socket. sweet_camera_host implements the OpenHarmony camera HDI (v1.0), registers camera_service with the HDF service manager like Huawei's CameraDaemon and copies the frames into the apps' buffer queues (preview NV21/NV12, JPEG photos). The camera libraries, tuning files and ICP firmware come from the sweet ROM; the bionic runtime and the few AOSP libraries it needs are shipped here. Logs: /data/log/sweetcam and 'cambridge:'/'sweet-camera:' lines in kmsg.",
+  "vendor_files": [
+    {
+      "src": "files/android/apex/com.android.runtime/bin/linker64",
+      "dst": "android/apex/com.android.runtime/bin/linker64",
+      "mode": "0755"
+    },
+    {
+      "src": "files/android/apex/com.android.runtime/lib64/bionic/libc.so",
+      "dst": "android/apex/com.android.runtime/lib64/bionic/libc.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/apex/com.android.runtime/lib64/bionic/libdl.so",
+      "dst": "android/apex/com.android.runtime/lib64/bionic/libdl.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/apex/com.android.runtime/lib64/bionic/libdl_android.so",
+      "dst": "android/apex/com.android.runtime/lib64/bionic/libdl_android.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/apex/com.android.runtime/lib64/bionic/libm.so",
+      "dst": "android/apex/com.android.runtime/lib64/bionic/libm.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/bin/cambridge",
+      "dst": "android/system/bin/cambridge",
+      "mode": "0755"
+    },
+    {
+      "src": "files/android/system/build.prop",
+      "dst": "android/system/build.prop",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/ld-android.so",
+      "dst": "android/system/lib64/ld-android.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libEGL.so",
+      "dst": "android/system/lib64/libEGL.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libGLESv2.so",
+      "dst": "android/system/lib64/libGLESv2.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libGLESv3.so",
+      "dst": "android/system/lib64/libGLESv3.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libSurfaceFlingerProp.so",
+      "dst": "android/system/lib64/libSurfaceFlingerProp.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libapexsupport.so",
+      "dst": "android/system/lib64/libapexsupport.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libbinder_ndk.so",
+      "dst": "android/system/lib64/libbinder_ndk.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libcamera_metadata.so",
+      "dst": "android/system/lib64/libcamera_metadata.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libegl_flags.so",
+      "dst": "android/system/lib64/libegl_flags.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libgraphicsenv.so",
+      "dst": "android/system/lib64/libgraphicsenv.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/liblog.so",
+      "dst": "android/system/lib64/liblog.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/liblzma.so",
+      "dst": "android/system/lib64/liblzma.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libnativebridge_lazy.so",
+      "dst": "android/system/lib64/libnativebridge_lazy.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libnativeloader_lazy.so",
+      "dst": "android/system/lib64/libnativeloader_lazy.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libnativewindow.so",
+      "dst": "android/system/lib64/libnativewindow.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libsync.so",
+      "dst": "android/system/lib64/libsync.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libunwindstack.so",
+      "dst": "android/system/lib64/libunwindstack.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/android/system/lib64/libvndksupport.so",
+      "dst": "android/system/lib64/libvndksupport.so",
+      "mode": "0644"
+    },
+    {
+      "src": "files/bin/sweet_camera_host",
+      "dst": "bin/sweet_camera_host",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/sweetcam-launch",
+      "dst": "bin/sweetcam-launch",
+      "mode": "0755"
+    }
+  ],
+  "vendor_dirs": [
+    {
+      "dst": "android/vendor/dsp",
+      "mode": "0755"
+    },
+    {
+      "dst": "android/vendor/firmware",
+      "mode": "0755"
+    }
+  ],
+  "vendor_symlinks": [
+    {
+      "dst": "android/system/bin/linker64",
+      "target": "/apex/com.android.runtime/bin/linker64"
+    },
+    {
+      "dst": "android/system/lib64/libc.so",
+      "target": "/apex/com.android.runtime/lib64/bionic/libc.so"
+    },
+    {
+      "dst": "android/system/lib64/libm.so",
+      "target": "/apex/com.android.runtime/lib64/bionic/libm.so"
+    },
+    {
+      "dst": "android/system/lib64/libdl.so",
+      "target": "/apex/com.android.runtime/lib64/bionic/libdl.so"
+    },
+    {
+      "dst": "android/system/lib64/libdl_android.so",
+      "target": "/apex/com.android.runtime/lib64/bionic/libdl_android.so"
+    }
+  ],
+  "sweet_blobs": [
+    {
+      "from": "lib64/camera/",
+      "to": "android/vendor/lib64/camera/"
+    },
+    {
+      "from": "etc/camera/",
+      "to": "android/vendor/etc/camera/"
+    },
+    {
+      "from": "lib/rfsa/",
+      "to": "android/vendor/lib/rfsa/"
+    },
+    {
+      "from": "build.prop",
+      "to": "android/vendor/build.prop"
+    },
+    {
+      "from": "firmware/CAMERA_ICP.elf",
+      "to": "firmware/CAMERA_ICP.elf"
+    },
+    {
+      "from": "lib64/android.frameworks.sensorservice@1.0.so",
+      "to": "android/vendor/lib64/android.frameworks.sensorservice@1.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.common-V2-ndk.so",
+      "to": "android/vendor/lib64/android.hardware.common-V2-ndk.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.allocator-V2-ndk.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.allocator-V2-ndk.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.allocator@2.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.allocator@2.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.allocator@3.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.allocator@3.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.allocator@4.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.allocator@4.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.common-V7-ndk.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.common-V7-ndk.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.common@1.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.common@1.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.common@1.1.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.common@1.1.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.common@1.2.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.common@1.2.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.mapper@2.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.mapper@2.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.mapper@2.1.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.mapper@2.1.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.mapper@3.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.mapper@3.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.graphics.mapper@4.0.so",
+      "to": "android/vendor/lib64/android.hardware.graphics.mapper@4.0.so"
+    },
+    {
+      "from": "lib64/android.hardware.sensors@1.0.so",
+      "to": "android/vendor/lib64/android.hardware.sensors@1.0.so"
+    },
+    {
+      "from": "lib64/egl/eglSubDriverAndroid.so",
+      "to": "android/vendor/lib64/egl/eglSubDriverAndroid.so"
+    },
+    {
+      "from": "lib64/egl/libEGL_adreno.so",
+      "to": "android/vendor/lib64/egl/libEGL_adreno.so"
+    },
+    {
+      "from": "lib64/egl/libGLESv1_CM_adreno.so",
+      "to": "android/vendor/lib64/egl/libGLESv1_CM_adreno.so"
+    },
+    {
+      "from": "lib64/egl/libGLESv2_adreno.so",
+      "to": "android/vendor/lib64/egl/libGLESv2_adreno.so"
+    },
+    {
+      "from": "lib64/egl/libq3dtools_adreno.so",
+      "to": "android/vendor/lib64/egl/libq3dtools_adreno.so"
+    },
+    {
+      "from": "lib64/egl/libq3dtools_esx.so",
+      "to": "android/vendor/lib64/egl/libq3dtools_esx.so"
+    },
+    {
+      "from": "lib64/hw/camera.qcom.so",
+      "to": "android/vendor/lib64/hw/camera.qcom.so"
+    },
+    {
+      "from": "lib64/hw/com.qti.chi.override.so",
+      "to": "android/vendor/lib64/hw/com.qti.chi.override.so"
+    },
+    {
+      "from": "lib64/hw/gralloc.qcom.so",
+      "to": "android/vendor/lib64/hw/gralloc.qcom.so"
+    },
+    {
+      "from": "lib64/libFaceDetectpp-0.5.2.so",
+      "to": "android/vendor/lib64/libFaceDetectpp-0.5.2.so"
+    },
+    {
+      "from": "lib64/libFaceGrade.so",
+      "to": "android/vendor/lib64/libFaceGrade.so"
+    },
+    {
+      "from": "lib64/libOpenCL.so",
+      "to": "android/vendor/lib64/libOpenCL.so"
+    },
+    {
+      "from": "lib64/libSNPE.so",
+      "to": "android/vendor/lib64/libSNPE.so"
+    },
+    {
+      "from": "lib64/libVDClearShot.so",
+      "to": "android/vendor/lib64/libVDClearShot.so"
+    },
+    {
+      "from": "lib64/libXMFD_AgeGender.so",
+      "to": "android/vendor/lib64/libXMFD_AgeGender.so"
+    },
+    {
+      "from": "lib64/libaconfig_storage_read_api_cc.so",
+      "to": "android/vendor/lib64/libaconfig_storage_read_api_cc.so"
+    },
+    {
+      "from": "lib64/libadreno_utils.so",
+      "to": "android/vendor/lib64/libadreno_utils.so"
+    },
+    {
+      "from": "lib64/libalCFR.so",
+      "to": "android/vendor/lib64/libalCFR.so"
+    },
+    {
+      "from": "lib64/libalLDC.so",
+      "to": "android/vendor/lib64/libalLDC.so"
+    },
+    {
+      "from": "lib64/libalhLDC.so",
+      "to": "android/vendor/lib64/libalhLDC.so"
+    },
+    {
+      "from": "lib64/libarcsoft_beautyshot.so",
+      "to": "android/vendor/lib64/libarcsoft_beautyshot.so"
+    },
+    {
+      "from": "lib64/libarcsoft_distortion_correction.so",
+      "to": "android/vendor/lib64/libarcsoft_distortion_correction.so"
+    },
+    {
+      "from": "lib64/libarcsoft_dualcam_refocus.so",
+      "to": "android/vendor/lib64/libarcsoft_dualcam_refocus.so"
+    },
+    {
+      "from": "lib64/libarcsoft_dualcam_refocus_front.so",
+      "to": "android/vendor/lib64/libarcsoft_dualcam_refocus_front.so"
+    },
+    {
+      "from": "lib64/libarcsoft_dualcam_refocus_rear_t.so",
+      "to": "android/vendor/lib64/libarcsoft_dualcam_refocus_rear_t.so"
+    },
+    {
+      "from": "lib64/libarcsoft_dualcam_refocus_rear_w.so",
+      "to": "android/vendor/lib64/libarcsoft_dualcam_refocus_rear_w.so"
+    },
+    {
+      "from": "lib64/libarcsoft_hta.so",
+      "to": "android/vendor/lib64/libarcsoft_hta.so"
+    },
+    {
+      "from": "lib64/libarcsoft_portrait_lighting.so",
+      "to": "android/vendor/lib64/libarcsoft_portrait_lighting.so"
+    },
+    {
+      "from": "lib64/libarcsoft_portrait_lighting_c.so",
+      "to": "android/vendor/lib64/libarcsoft_portrait_lighting_c.so"
+    },
+    {
+      "from": "lib64/libarcsoft_preview_deflicker.so",
+      "to": "android/vendor/lib64/libarcsoft_preview_deflicker.so"
+    },
+    {
+      "from": "lib64/libarcsoft_super_night_raw.so",
+      "to": "android/vendor/lib64/libarcsoft_super_night_raw.so"
+    },
+    {
+      "from": "lib64/libbase.so",
+      "to": "android/vendor/lib64/libbase.so"
+    },
+    {
+      "from": "lib64/libbinder.so",
+      "to": "android/vendor/lib64/libbinder.so"
+    },
+    {
+      "from": "lib64/libc++.so",
+      "to": "android/vendor/lib64/libc++.so"
+    },
+    {
+      "from": "lib64/libc++_shared.so",
+      "to": "android/vendor/lib64/libc++_shared.so"
+    },
+    {
+      "from": "lib64/libcamera_dirty.so",
+      "to": "android/vendor/lib64/libcamera_dirty.so"
+    },
+    {
+      "from": "lib64/libcamera_nn_stub.so",
+      "to": "android/vendor/lib64/libcamera_nn_stub.so"
+    },
+    {
+      "from": "lib64/libcamera_scene.so",
+      "to": "android/vendor/lib64/libcamera_scene.so"
+    },
+    {
+      "from": "lib64/libcamxfdalgov8.so",
+      "to": "android/vendor/lib64/libcamxfdalgov8.so"
+    },
+    {
+      "from": "lib64/libcamxfdengine.so",
+      "to": "android/vendor/lib64/libcamxfdengine.so"
+    },
+    {
+      "from": "lib64/libcamxstatscore.so",
+      "to": "android/vendor/lib64/libcamxstatscore.so"
+    },
+    {
+      "from": "lib64/libcdsprpc.so",
+      "to": "android/vendor/lib64/libcdsprpc.so"
+    },
+    {
+      "from": "lib64/libclang_rt.ubsan_standalone-aarch64-android.so",
+      "to": "android/vendor/lib64/libclang_rt.ubsan_standalone-aarch64-android.so"
+    },
+    {
+      "from": "lib64/libcom.qti.chinodeutils.so",
+      "to": "android/vendor/lib64/libcom.qti.chinodeutils.so"
+    },
+    {
+      "from": "lib64/libcutils.so",
+      "to": "android/vendor/lib64/libcutils.so"
+    },
+    {
+      "from": "lib64/libdng_sdk.so",
+      "to": "android/vendor/lib64/libdng_sdk.so"
+    },
+    {
+      "from": "lib64/libdualcam_video_optical_zoom.so",
+      "to": "android/vendor/lib64/libdualcam_video_optical_zoom.so"
+    },
+    {
+      "from": "lib64/libexpat.so",
+      "to": "android/vendor/lib64/libexpat.so"
+    },
+    {
+      "from": "lib64/libfacedet.so",
+      "to": "android/vendor/lib64/libfacedet.so"
+    },
+    {
+      "from": "lib64/libft2vendor.so",
+      "to": "android/vendor/lib64/libft2vendor.so"
+    },
+    {
+      "from": "lib64/libgralloc.qti.so",
+      "to": "android/vendor/lib64/libgralloc.qti.so"
+    },
+    {
+      "from": "lib64/libgralloccore.so",
+      "to": "android/vendor/lib64/libgralloccore.so"
+    },
+    {
+      "from": "lib64/libgralloctypes.so",
+      "to": "android/vendor/lib64/libgralloctypes.so"
+    },
+    {
+      "from": "lib64/libgrallocutils.so",
+      "to": "android/vendor/lib64/libgrallocutils.so"
+    },
+    {
+      "from": "lib64/libgsl.so",
+      "to": "android/vendor/lib64/libgsl.so"
+    },
+    {
+      "from": "lib64/libhardware.so",
+      "to": "android/vendor/lib64/libhardware.so"
+    },
+    {
+      "from": "lib64/libhidlbase.so",
+      "to": "android/vendor/lib64/libhidlbase.so"
+    },
+    {
+      "from": "lib64/libhidltransport.so",
+      "to": "android/vendor/lib64/libhidltransport.so"
+    },
+    {
+      "from": "lib64/libhta_hexagon_runtime.so",
+      "to": "android/vendor/lib64/libhta_hexagon_runtime.so"
+    },
+    {
+      "from": "lib64/libhvx_interface.so",
+      "to": "android/vendor/lib64/libhvx_interface.so"
+    },
+    {
+      "from": "lib64/libion.so",
+      "to": "android/vendor/lib64/libion.so"
+    },
+    {
+      "from": "lib64/libjpeg.so",
+      "to": "android/vendor/lib64/libjpeg.so"
+    },
+    {
+      "from": "lib64/libjxl.so",
+      "to": "android/vendor/lib64/libjxl.so"
+    },
+    {
+      "from": "lib64/libllvm-glnext.so",
+      "to": "android/vendor/lib64/libllvm-glnext.so"
+    },
+    {
+      "from": "lib64/libmialgo_fs.so",
+      "to": "android/vendor/lib64/libmialgo_fs.so"
+    },
+    {
+      "from": "lib64/libmialgo_rfs.so",
+      "to": "android/vendor/lib64/libmialgo_rfs.so"
+    },
+    {
+      "from": "lib64/libmialgo_sd.so",
+      "to": "android/vendor/lib64/libmialgo_sd.so"
+    },
+    {
+      "from": "lib64/libmialgo_utils.so",
+      "to": "android/vendor/lib64/libmialgo_utils.so"
+    },
+    {
+      "from": "lib64/libmibokeh_712.so",
+      "to": "android/vendor/lib64/libmibokeh_712.so"
+    },
+    {
+      "from": "lib64/libmpbase.so",
+      "to": "android/vendor/lib64/libmpbase.so"
+    },
+    {
+      "from": "lib64/libmulticam_image_optical_zoom.so",
+      "to": "android/vendor/lib64/libmulticam_image_optical_zoom.so"
+    },
+    {
+      "from": "lib64/libmulticam_video_optical_zoom.so",
+      "to": "android/vendor/lib64/libmulticam_video_optical_zoom.so"
+    },
+    {
+      "from": "lib64/libpiex.so",
+      "to": "android/vendor/lib64/libpiex.so"
+    },
+    {
+      "from": "lib64/libpiex_shim.so",
+      "to": "android/vendor/lib64/libpiex_shim.so"
+    },
+    {
+      "from": "lib64/libpng.so",
+      "to": "android/vendor/lib64/libpng.so"
+    },
+    {
+      "from": "lib64/libprotobuf-cpp-full-3.9.1.so",
+      "to": "android/vendor/lib64/libprotobuf-cpp-full-3.9.1.so"
+    },
+    {
+      "from": "lib64/libprotobuf-cpp-lite-3.9.1.so",
+      "to": "android/vendor/lib64/libprotobuf-cpp-lite-3.9.1.so"
+    },
+    {
+      "from": "lib64/libqdMetaData.so",
+      "to": "android/vendor/lib64/libqdMetaData.so"
+    },
+    {
+      "from": "lib64/libqmi_cci.so",
+      "to": "android/vendor/lib64/libqmi_cci.so"
+    },
+    {
+      "from": "lib64/libqmi_common_so.so",
+      "to": "android/vendor/lib64/libqmi_common_so.so"
+    },
+    {
+      "from": "lib64/libqmi_encdec.so",
+      "to": "android/vendor/lib64/libqmi_encdec.so"
+    },
+    {
+      "from": "lib64/libremosaic_wrapper.so",
+      "to": "android/vendor/lib64/libremosaic_wrapper.so"
+    },
+    {
+      "from": "lib64/libsensorslog.so",
+      "to": "android/vendor/lib64/libsensorslog.so"
+    },
+    {
+      "from": "lib64/libsnsapi.so",
+      "to": "android/vendor/lib64/libsnsapi.so"
+    },
+    {
+      "from": "lib64/libtriplecam_video_optical_zoom.so",
+      "to": "android/vendor/lib64/libtriplecam_video_optical_zoom.so"
+    },
+    {
+      "from": "lib64/libui.so",
+      "to": "android/vendor/lib64/libui.so"
+    },
+    {
+      "from": "lib64/libutils.so",
+      "to": "android/vendor/lib64/libutils.so"
+    },
+    {
+      "from": "lib64/libvideofilter_only.so",
+      "to": "android/vendor/lib64/libvideofilter_only.so"
+    },
+    {
+      "from": "lib64/libvidhance.so",
+      "to": "android/vendor/lib64/libvidhance.so"
+    },
+    {
+      "from": "lib64/libxmi_hdr_checker.so",
+      "to": "android/vendor/lib64/libxmi_hdr_checker.so"
+    },
+    {
+      "from": "lib64/libxmi_high_dynamic_range.so",
+      "to": "android/vendor/lib64/libxmi_high_dynamic_range.so"
+    },
+    {
+      "from": "lib64/libxml2.so",
+      "to": "android/vendor/lib64/libxml2.so"
+    },
+    {
+      "from": "lib64/libxml2_vendor.so",
+      "to": "android/vendor/lib64/libxml2_vendor.so"
+    },
+    {
+      "from": "lib64/libz.so",
+      "to": "android/vendor/lib64/libz.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.display.mapper@2.0.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.display.mapper@2.0.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.display.mapper@3.0.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.display.mapper@3.0.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.display.mapper@4.0.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.display.mapper@4.0.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.display.mapperextensions@1.0.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.display.mapperextensions@1.0.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.display.mapperextensions@1.1.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.display.mapperextensions@1.1.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.dsp@1.0.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.dsp@1.0.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.vpp@1.1.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.vpp@1.1.so"
+    },
+    {
+      "from": "lib64/vendor.qti.hardware.vpp@1.2.so",
+      "to": "android/vendor/lib64/vendor.qti.hardware.vpp@1.2.so"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "mkdir /data/vendor/camera 0770 root root",
+          "mkdir /data/log/sweetcam 0770 root root",
+          "start sweet_cambridge"
+        ]
+      },
+      {
+        "name": "boot",
+        "cmds": [
+          "start sweet_camera_host"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "sweet_cambridge",
+        "path": [
+          "/vendor/bin/sweetcam-launch"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "sandbox": 0
+      },
+      {
+        "name": "sweet_camera_host",
+        "path": [
+          "/vendor/bin/sweet_camera_host"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "sandbox": 0
+      }
+    ]
+  },
+  "requires": [
+    "10-display",
+    "22-camera-daemon-idle",
+    "30-remoteproc"
+  ]
+}

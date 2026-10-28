@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- hmos2sweet: thermal policy for the Redmi Note 10 Pro (sm6150).
+
+     Huawei's policy is tuned for the Pura 70's virtual sensors (it shuts the
+     phone down when "cpu" passes 34 C). On sweet the sensors are real, and the
+     kernel already throttles CPU and GPU (sm6150 step-wise zones), so this
+     policy only:
+       - reports the thermal level to apps and SceneBoard,
+       - dims the screen and trims background apps when the back gets hot,
+       - shuts down before the battery or the SoC are damaged.
+     Temperatures are in millidegrees Celsius. -->
+<thermal version="0.01" product="sweet">
+    <base>
+        <item tag="history_temp_count" value="10"/>
+        <item tag="temperature_query_enum" value="soc,battery,shell,cpu,charger,ambient,ap,pa,gpu"/>
+        <item tag="sim_tz" value="0"/>
+    </base>
+
+    <level>
+        <sensor_cluster name="skin" sensor="shell,battery">
+            <item level="1" threshold="41000,41000" threshold_clr="39000,39000"/>
+            <item level="2" threshold="44000,44000" threshold_clr="42000,42000"/>
+            <item level="3" threshold="47000,47000" threshold_clr="45000,45000"/>
+            <item level="4" threshold="50000,50000" threshold_clr="48000,48000"/>
+        </sensor_cluster>
+        <sensor_cluster name="critical" sensor="battery,soc">
+            <item level="1" threshold="60000,115000" threshold_clr="57000,105000"/>
+        </sensor_cluster>
+        <sensor_cluster name="cold_safe" sensor="battery" desc="1">
+            <item level="1" threshold="-10000" threshold_clr="-7000"/>
+            <item level="2" threshold="-20000" threshold_clr="-17000"/>
+        </sensor_cluster>
+    </level>
+
+    <state>
+        <item name="scene" param="cam,call,game,test"/>
+        <item name="screen"/>
+        <item name="charge"/>
+    </state>
+
+    <action>
+        <item name="lcd"/>
+        <item name="process_ctrl" param="32,64,128,256" event=""/>
+        <item name="shut_down" event="0"/>
+        <item name="thermallevel" event="1"/>
+        <item name="popup"/>
+    </action>
+
+    <policy>
+        <config name="skin" level="1">
+            <thermallevel>1</thermallevel>
+        </config>
+        <config name="skin" level="2">
+            <thermallevel>2</thermallevel>
+            <lcd>0.90</lcd>
+        </config>
+        <config name="skin" level="3">
+            <thermallevel>3</thermallevel>
+            <lcd>0.80</lcd>
+            <process_ctrl>2</process_ctrl>
+        </config>
+        <config name="skin" level="4">
+            <thermallevel>4</thermallevel>
+            <lcd>0.70</lcd>
+            <process_ctrl>3</process_ctrl>
+            <popup>1</popup>
+        </config>
+        <config name="critical" level="1">
+            <thermallevel>7</thermallevel>
+            <shut_down>1</shut_down>
+        </config>
+        <config name="cold_safe" level="1">
+            <thermallevel>0</thermallevel>
+        </config>
+        <config name="cold_safe" level="2">
+            <thermallevel>0</thermallevel>
+        </config>
+    </policy>
+</thermal>

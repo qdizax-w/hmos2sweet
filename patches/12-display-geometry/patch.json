@@ -1,0 +1,17 @@
+{
+  "name": "Screen geometry: 460 dpi + centred punch hole",
+  "default": true,
+  "description": "Rewrites the window manager display config (dpi, cutout area and path) for the 1080x2400 sweet panel with its centred punch-hole camera, so the status bar puts the clock on the left and the icons on the right. Generated from the OTA's own file and bind-mounted over it at boot.",
+  "hook": "hook.py",
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount none /vendor/etc/sweet/display_manager_config.xml /sys_prod/etc/window/resources/display_manager_config.xml bind"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

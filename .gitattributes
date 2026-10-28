@@ -1,0 +1,9 @@
+*.bat text eol=crlf
+*.sh text eol=lf
+*.py text eol=lf
+*.so binary
+*.img binary
+*.gz binary
+*.xz binary
+patches/**/files/** binary
+prebuilt/** binary

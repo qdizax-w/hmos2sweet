@@ -1,0 +1,13 @@
+{
+  "name": "Debug tools (sqlite3)",
+  "default": false,
+  "description": "Static sqlite3 shell in /vendor/bin for inspecting settings and other databases from a root shell.",
+  "vendor_files": [
+    {
+      "src": "files/bin/sqlite3",
+      "dst": "bin/sqlite3",
+      "mode": "0755"
+    }
+  ],
+  "requires": []
+}

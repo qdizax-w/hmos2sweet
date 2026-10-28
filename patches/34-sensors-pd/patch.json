@@ -1,0 +1,56 @@
+{
+  "name": "ADSP sensors domain (stops the audio DSP restarts)",
+  "default": true,
+  "requires": [
+    "30-remoteproc"
+  ],
+  "description": "The sensors protection domain on the ADSP waits for a HLOS daemon that serves its configuration files; without it the ADSP watchdog restarts the whole DSP (and cuts the audio) every ~40 s. hexagonrpcd (linux-msm/hexagonrpc, ported to the downstream adsprpc driver) serves the sweet sensor configs, the ACDB file and the sensor registry from the persist partition.",
+  "vendor_files": [
+    {
+      "src": "files/bin/hexagonrpcd",
+      "dst": "bin/hexagonrpcd",
+      "mode": "0755"
+    }
+  ],
+  "vendor_dirs": [
+    {
+      "dst": "persist",
+      "mode": "0755"
+    }
+  ],
+  "sweet_blobs": [
+    {
+      "from": "etc/sensors/config/",
+      "to": "etc/sweet/hexagonrpc/sensors/config/"
+    },
+    {
+      "from": "etc/sensors/sns_reg_config",
+      "to": "etc/sweet/hexagonrpc/sensors/sns_reg.conf"
+    },
+    {
+      "from": "etc/acdbdata/",
+      "to": "etc/sweet/hexagonrpc/acdb/"
+    }
+  ],
+  "vendor_symlinks": [
+    {
+      "dst": "etc/sweet/hexagonrpc/dsp",
+      "target": "/vendor/dsp"
+    },
+    {
+      "dst": "etc/sweet/hexagonrpc/sensors/registry",
+      "target": "/vendor/persist/sensors/registry/registry"
+    },
+    {
+      "dst": "etc/sweet/hexagonrpc/socinfo",
+      "target": "/sys/devices/soc0"
+    },
+    {
+      "dst": "etc/sweet/hexagonrpc/mnt/vendor/persist",
+      "target": "/vendor/persist"
+    }
+  ],
+  "markers": [
+    "etc/sweet/feature_sensors"
+  ]
+}

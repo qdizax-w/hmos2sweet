@@ -1,0 +1,29 @@
+{
+  "name": "No reboot when a service crashes",
+  "default": true,
+  "description": "HarmonyOS reboots the phone when SceneBoard crashes 4 times in 4 minutes, and init reboots it when a 'critical' service (render_service, foundation, samgr, ...) keeps crashing: it first stops every service and unmounts /data, so with the kernel refusing the reboot the phone is left dead. On a port a missing driver is enough to trigger this. The SceneBoard policy is switched off and the critical flag is cleared for every system and vendor service (system ones are re-declared in /vendor, system.img is not rebuilt): crashed services are simply restarted.",
+  "hook": "hook.py",
+  "init": {
+    "jobs": [
+      {
+        "name": "param:bootevent.boot.completed=true",
+        "cmds": [
+          "stop watchdog_service"
+        ]
+      },
+      {
+        "name": "boot",
+        "cmds": [
+          "stop watchdog_service"
+        ]
+      },
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount none /vendor/etc/sweet/ams_service_config.json /system/etc/ams_service_config.json bind"
+        ]
+      }
+    ]
+  },
+  "requires": []
+}

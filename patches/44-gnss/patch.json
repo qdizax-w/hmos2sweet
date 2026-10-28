@@ -1,0 +1,16 @@
+{
+  "name": "GPS (GNSS through the Qualcomm modem) - EXPERIMENTAL",
+  "default": true,
+  "requires": [
+    "30-remoteproc",
+    "32-wifi"
+  ],
+  "description": "Vendor GNSS adapter for the HarmonyOS GNSS HDI service: starts and stops fixes on the modem's GNSS engine through QMI LOC and forwards positions, satellites (GPS, GLONASS, BeiDou, Galileo, QZSS) and NMEA. Standalone GPS, no A-GPS/SUPL.",
+  "vendor_files": [
+    {
+      "src": "files/lib64/vendorGnssAdapter.so",
+      "dst": "lib64/vendorGnssAdapter.so",
+      "mode": "0644"
+    }
+  ]
+}

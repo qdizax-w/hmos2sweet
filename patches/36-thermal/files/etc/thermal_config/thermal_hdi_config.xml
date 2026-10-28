@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- hmos2sweet: thermal HDI for the Redmi Note 10 Pro (sm6150).
+     Real thermal zones instead of the simulated Kirin nodes. "replace" is the
+     name the thermal service sees (see thermal_service_config.xml).
+       soc      cpuss-0-usr       CPU subsystem
+       cpu      cpu-1-0-usr       big cluster core
+       gpu      gpuss-0-usr       Adreno 618
+       battery  battery           fuel gauge (qpnp-qg)
+       shell    quiet-therm-adc   skin sensor near the back cover
+       ambient  xo-therm-adc      crystal oscillator, close to ambient
+       charger  conn-therm-adc    USB connector
+       pa       rf-pa0-therm-adc  modem power amplifier
+       ap       cpuss-1-usr       second CPU subsystem sensor -->
+<thermal version="0.01" product="sweet">
+    <base>
+        <item tag="sim_tz" value="0"/>
+    </base>
+
+    <polling name="thermal">
+        <group name="actual" interval="5000">
+            <thermal_zone type="cpuss-0-usr" replace="soc"/>
+            <thermal_zone type="cpu-1-0-usr" replace="cpu"/>
+            <thermal_zone type="gpuss-0-usr" replace="gpu"/>
+            <thermal_zone type="battery" replace="battery"/>
+            <thermal_zone type="quiet-therm-adc" replace="shell"/>
+            <thermal_zone type="xo-therm-adc" replace="ambient"/>
+            <thermal_zone type="conn-therm-adc" replace="charger"/>
+            <thermal_zone type="rf-pa0-therm-adc" replace="pa"/>
+            <thermal_zone type="cpuss-1-usr" replace="ap"/>
+        </group>
+    </polling>
+
+    <tracing outpath="/data/log/thermal/thermal-log">
+        <node>
+            <title name="soc"/>
+            <value path="sys/class/thermal/thermal_zone0/temp"/>
+        </node>
+    </tracing>
+</thermal>

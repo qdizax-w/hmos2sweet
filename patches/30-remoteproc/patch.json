@@ -1,0 +1,151 @@
+{
+  "name": "Modem/ADSP bring-up (qrtr, rmtfs, tqftpserv, pd-mapper)",
+  "default": true,
+  "description": "Userspace helpers that Android normally provides for the Qualcomm remote processors: QRTR name service, remote file system, TFTP firmware server, protection-domain mapper, plus sweet-rproc which mounts the firmware partition and boots ADSP (audio) / modem (WLAN firmware). Required by the audio and WiFi patches.",
+  "vendor_files": [
+    {
+      "src": "files/bin/qrtr-ns",
+      "dst": "bin/qrtr-ns",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/qrtr-lookup",
+      "dst": "bin/qrtr-lookup",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/rmtfs",
+      "dst": "bin/rmtfs",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/tqftpserv",
+      "dst": "bin/tqftpserv",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/pd-mapper",
+      "dst": "bin/pd-mapper",
+      "mode": "0755"
+    },
+    {
+      "src": "files/bin/sweet-rproc",
+      "dst": "bin/sweet-rproc",
+      "mode": "0755"
+    }
+  ],
+  "vendor_dirs": [
+    {
+      "dst": "firmware_mnt",
+      "mode": "0755"
+    },
+    {
+      "dst": "dsp",
+      "mode": "0755"
+    },
+    {
+      "dst": "persist",
+      "mode": "0755"
+    }
+  ],
+  "sweet_blobs": [
+    {
+      "from": "firmware/ipa_fws.mdt",
+      "to": "firmware/ipa_fws.mdt"
+    },
+    {
+      "from": "firmware/ipa_fws.b00",
+      "to": "firmware/ipa_fws.b00"
+    },
+    {
+      "from": "firmware/ipa_fws.b01",
+      "to": "firmware/ipa_fws.b01"
+    },
+    {
+      "from": "firmware/ipa_fws.b02",
+      "to": "firmware/ipa_fws.b02"
+    },
+    {
+      "from": "firmware/ipa_fws.b03",
+      "to": "firmware/ipa_fws.b03"
+    },
+    {
+      "from": "firmware/ipa_fws.b04",
+      "to": "firmware/ipa_fws.b04"
+    },
+    {
+      "from": "firmware/ipa_fws.elf",
+      "to": "firmware/ipa_fws.elf"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "pre-init",
+        "cmds": [
+          "mount vfat /dev/block/by-name/modem /vendor/firmware_mnt ro nosuid nodev shortname=lower,uid=0,gid=1000,dmask=0222,fmask=0333",
+          "mount ext4 /dev/block/by-name/persist /vendor/persist nosuid nodev noatime"
+        ]
+      },
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "start sweet_qrtr_ns",
+          "start sweet_rmtfs",
+          "start sweet_rproc"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "sweet_qrtr_ns",
+        "path": [
+          "/vendor/bin/qrtr-ns",
+          "-f"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "sandbox": 0
+      },
+      {
+        "name": "sweet_rmtfs",
+        "path": [
+          "/vendor/bin/rmtfs",
+          "-P",
+          "-o",
+          "/dev/block/by-name",
+          "-v"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "sandbox": 0
+      },
+      {
+        "name": "sweet_rproc",
+        "path": [
+          "/vendor/bin/sweet-rproc"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "once": 1,
+        "sandbox": 0
+      }
+    ]
+  },
+  "requires": []
+}

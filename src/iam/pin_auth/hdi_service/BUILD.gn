@@ -1,0 +1,118 @@
+# Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+ohos_shared_library("libpin_auth_interface_service_2.1") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  include_dirs = [
+    "service/inc",
+    "adaptor/inc",
+    "common/inc",
+    "database/inc",
+    "main/inc",
+    "../common/logs",
+    "../common/utils",
+  ]
+  sources = [
+    "adaptor/src/adaptor_algorithm.c",
+    "adaptor/src/adaptor_file.c",
+    "adaptor/src/adaptor_memory.c",
+    "adaptor/src/adaptor_time.c",
+    "adaptor/src/buffer.c",
+    "adaptor/src/file_operator.c",
+    "common/src/attribute.c",
+    "common/src/c_array.c",
+    "database/src/pin_db.c",
+    "database/src/pin_db_ops.c",
+    "database/src/pin_db_ops_base.c",
+    "database/src/pin_db_ops_v0.c",
+    "database/src/pin_db_ops_v1.c",
+    "main/src/all_in_one_func.c",
+    "main/src/collector_func.c",
+    "main/src/executor_func_common.c",
+    "main/src/pin_auth.cpp",
+    "main/src/verifier_func.c",
+    "service/src/all_in_one_impl.cpp",
+    "service/src/collector_impl.cpp",
+    "service/src/executor_impl_common.cpp",
+    "service/src/pin_auth_interface_service.cpp",
+    "service/src/verifier_impl.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_pin_auth:libpin_auth_stub_2.1",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+  ]
+
+  install_images = [ chipset_base_dir ]
+  remove_configs = [ "//build/config/compiler:no_exceptions" ]
+  subsystem_name = "hdf"
+  part_name = "drivers_peripheral_pin_auth"
+}
+
+ohos_shared_library("libpin_auth_driver") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  include_dirs = [
+    "service/inc",
+    "main/inc",
+    "../common/logs",
+    "../common/utils",
+  ]
+  sources = [ "service/src/pin_auth_interface_driver.cpp" ]
+  deps = [ "../hdi_service:libpin_auth_interface_service_2.1" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_pin_auth:libpin_auth_stub_2.1",
+    "hdf_core:libhdf_host",
+    "hdf_core:libhdf_ipc_adapter",
+    "hdf_core:libhdf_utils",
+    "hdf_core:libhdi",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+  shlib_type = "hdi"
+  install_images = [ chipset_base_dir ]
+  remove_configs = [ "//build/config/compiler:no_exceptions" ]
+  subsystem_name = "hdf"
+  part_name = "drivers_peripheral_pin_auth"
+}
+
+group("hdf_pin_auth_service") {
+  deps = [
+    ":libpin_auth_driver",
+    ":libpin_auth_interface_service_2.1",
+  ]
+}

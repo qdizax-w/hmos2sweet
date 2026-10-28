@@ -1,0 +1,129 @@
+From 889979fe33150e84af4d1c79386b3fc15512d36e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 18 Oct 2026 21:30:08 +0200
+Subject: [PATCH 04/12] ohos: emulate hmdfs/sharefs mounts for storage_daemon
+ (OHOS_FS_EMU)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_013BnD2kisuqqyfphx6EWB2p
+---
+ arch/arm64/configs/vendor/ohos.config |  3 ++
+ drivers/ohos/Kconfig                  |  7 +++
+ fs/namespace.c                        | 67 +++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+)
+
+diff --git a/arch/arm64/configs/vendor/ohos.config b/arch/arm64/configs/vendor/ohos.config
+index ba9abb166..8f7ddda9b 100644
+--- a/arch/arm64/configs/vendor/ohos.config
++++ b/arch/arm64/configs/vendor/ohos.config
+@@ -24,3 +24,6 @@ CONFIG_OHOS_BRINGUP_PERMISSIVE=y
+ CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder"
+ # display HALs (allocator/composer/Mesa) share buffers on /dev/dri/card0
+ CONFIG_OHOS_DRM_AUTH_ALL=y
++# hmdfs/sharefs (storage_daemon StartUser) emulated with tmpfs + binds
++CONFIG_OHOS_FS_EMU=y
++CONFIG_TMPFS=y
+diff --git a/drivers/ohos/Kconfig b/drivers/ohos/Kconfig
+index a77aa67e2..7c78eaa51 100644
+--- a/drivers/ohos/Kconfig
++++ b/drivers/ohos/Kconfig
+@@ -24,4 +24,11 @@ config OHOS_DRM_AUTH_ALL
+ 	depends on DRM
+ 	default n
+ 
++config OHOS_FS_EMU
++	bool "Emulate hmdfs/sharefs mounts with tmpfs + bind mounts"
++	default n
++	help
++	  HarmonyOS storage_daemon needs the hmdfs and sharefs filesystems to
++	  start a user.  Emulate their local (non-distributed) views.
++
+ endmenu
+diff --git a/fs/namespace.c b/fs/namespace.c
+index d772fe46e..8f2f3a0ab 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -3154,6 +3154,67 @@ struct dentry *mount_subtree(struct vfsmount *mnt, const char *name)
+ }
+ EXPORT_SYMBOL(mount_subtree);
+ 
++#ifdef CONFIG_OHOS_FS_EMU
++/*
++ * HarmonyOS storage_daemon mounts "hmdfs" (distributed fs) and "sharefs" on
++ * every user start.  This kernel has neither, so emulate the local-only
++ * behaviour with what exists:
++ *   hmdfs  src -> dst : tmpfs on dst with device_view/local, merge_view and
++ *                       cloud_merge_view, each a bind mount of src
++ *   sharefs src -> dst: bind mount of src
++ */
++static long ohos_fs_emu_mount(const char *dev, const char __user *udir,
++			      const char *type, unsigned long flags)
++{
++	static const char * const views[] = {
++		"device_view/local", "merge_view", "cloud_merge_view",
++	};
++	char *dir, *p;
++	mm_segment_t old_fs;
++	long ret;
++	int i;
++
++	dir = strndup_user(udir, PATH_MAX);
++	if (IS_ERR(dir))
++		return PTR_ERR(dir);
++	p = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!p) {
++		kfree(dir);
++		return -ENOMEM;
++	}
++
++	old_fs = get_fs();
++	set_fs(KERNEL_DS);
++	if (!strcmp(type, "sharefs")) {
++		ret = do_mount(dev, (const char __user *)dir, NULL, MS_BIND, NULL);
++		goto out;
++	}
++
++	ret = do_mount("hmdfs", (const char __user *)dir, "tmpfs",
++		       flags & (MS_NOSUID | MS_NODEV | MS_NOEXEC), "mode=0711");
++	if (ret)
++		goto out;
++	snprintf(p, PATH_MAX, "%s/device_view", dir);
++	sys_mkdirat(AT_FDCWD, (const char __user *)p, 0711);
++	for (i = 0; i < ARRAY_SIZE(views); i++) {
++		snprintf(p, PATH_MAX, "%s/%s", dir, views[i]);
++		sys_mkdirat(AT_FDCWD, (const char __user *)p, 0711);
++		ret = do_mount(dev, (const char __user *)p, NULL, MS_BIND, NULL);
++		if (ret) {
++			pr_warn("ohos_fs_emu: bind %s -> %s failed %ld\n", dev, p, ret);
++			break;
++		}
++	}
++out:
++	set_fs(old_fs);
++	if (ret)
++		pr_warn("ohos_fs_emu: %s %s -> %s failed %ld\n", type, dev, dir, ret);
++	kfree(p);
++	kfree(dir);
++	return ret;
++}
++#endif
++
+ SYSCALL_DEFINE5(mount, char __user *, dev_name, char __user *, dir_name,
+ 		char __user *, type, unsigned long, flags, void __user *, data)
+ {
+@@ -3177,6 +3238,12 @@ SYSCALL_DEFINE5(mount, char __user *, dev_name, char __user *, dir_name,
+ 	if (IS_ERR(options))
+ 		goto out_data;
+ 
++#ifdef CONFIG_OHOS_FS_EMU
++	if (kernel_type && kernel_dev && !(flags & (MS_REMOUNT | MS_BIND)) &&
++	    (!strcmp(kernel_type, "hmdfs") || !strcmp(kernel_type, "sharefs")))
++		ret = ohos_fs_emu_mount(kernel_dev, dir_name, kernel_type, flags);
++	else
++#endif
+ 	ret = do_mount(kernel_dev, dir_name, kernel_type, flags, options);
+ 
+ 	kfree(options);
+-- 
+2.43.0
+

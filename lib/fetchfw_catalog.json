@@ -1,0 +1,14 @@
+{
+  "comment": "Known HarmonyOS full packages for the Huawei Pura 70 (ADY-*). fetchfw verifies every entry online before offering it. Add new ones with: python3 fetchfw.py --url <package URL>",
+  "packages": [
+    {
+      "url": "http://update.dbankcdn.com/download/data/pub_13/HWHOTA_hota_900_9/c9/v3/fm2MH0XMR0m9EpxI0L2Zww/full/update_full_base.zip",
+      "model": "ADY-AL10",
+      "version": "ADY-LGRP3-CHN 205.1.0.128(SP5)",
+      "os": "HarmonyOS 5.1",
+      "size": 5678166219,
+      "sha256": "1c872454021bc9c2479ee3f09ea6d96e4b8631119606468d1fa6af0a52d189d1",
+      "tested": "hmos2sweet 1.x reference firmware"
+    }
+  ]
+}
