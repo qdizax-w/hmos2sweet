@@ -1,0 +1,42 @@
+{
+  "name": "Memory: zram swap, no rounded-corner overlay",
+  "default": true,
+  "description": "For the 4 GB curtana. HarmonyOS (made for the 12 GB Pura 70) ran with ~100 MB free and no swap, which made input and UI lag badly: a boot script turns on zram (lz4, 75% of RAM, swappiness 100). render_service also tried to draw the Pura 70's rounded-corner overlay (RCD) on every frame and failed every time; persist.rosen.screenroundcornerrcd.enabled is set to 0.",
+  "vendor_files": [
+    {
+      "src": "files/etc/curtana_zram.sh",
+      "dst": "etc/sweet/curtana_zram.sh",
+      "mode": "0755"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "post-fs-data",
+        "cmds": [
+          "setparam persist.rosen.screenroundcornerrcd.enabled 0",
+          "start curtana_zram"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "curtana_zram",
+        "path": [
+          "/system/bin/sh",
+          "/vendor/etc/sweet/curtana_zram.sh"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "once": 1,
+        "sandbox": 0
+      }
+    ]
+  },
+  "requires": []
+}

@@ -709,11 +709,25 @@ static void verbose_flush(void)
 	kms_draw(text);
 }
 
+/*
+ * hmos2curtana: the debug hilog stream (and hilog flow control off) only runs
+ * for the first DEBUGLOG_SECS seconds of a boot. Left on, it decodes every
+ * log line of the system forever, keeps the whole system logging without
+ * limits and syncs the cache partition constantly: on the 4 GB curtana that
+ * was a large part of the UI/input lag. hmos.debuglog=1 on the kernel command
+ * line keeps it on for the whole session (old behaviour), hmos.debuglog=0
+ * turns the stream off completely. kmsg is always kept.
+ */
+#define DEBUGLOG_SECS 180
+static int debuglog_secs = DEBUGLOG_SECS; /* <0: forever */
+
 /* hilog flow control drops most of SceneBoard's lines (window, display
- * power, lock screen): switch it off for the debug stream */
-static void hilog_flowctrl_off(void)
+ * power, lock screen): switch it off for the debug stream, back on after */
+static void hilog_flowctrl(int on)
 {
-	static const char *const modes[] = { "pidoff", "domainoff" };
+	static const char *const off_modes[] = { "pidoff", "domainoff" };
+	static const char *const on_modes[] = { "pidon", "domainon" };
+	const char *const *modes = on ? on_modes : off_modes;
 	for (int i = 0; i < 2; i++) {
 		pid_t pid = fork();
 		if (pid == 0) {
@@ -745,7 +759,7 @@ static void hilog_stream_tick(void)
 	}
 	if (snap_dir < 0)
 		return;
-	hilog_flowctrl_off();
+	hilog_flowctrl(0);
 	static int seq;
 	char name[64];
 	snprintf(name, sizeof(name), "hilog-stream-%d.txt", seq++);
@@ -835,6 +849,7 @@ static void start_logger(void)
 		unsigned lines = 0;
 		int dirty = 0;
 		struct timespec last_flush = {0}, last_hilog = {0};
+		int debug_window_closed = 0;
 		/* snapshot schedule (seconds after the logger started) */
 		static const int snap_at[] = { 40, 150, 600 };
 		int next_snap = 0;
@@ -867,10 +882,24 @@ static void start_logger(void)
 					last_flush = now;
 				}
 			}
-			/* decoded hilog stream, (re)started every 5 s once hilogd is up */
-			if (now.tv_sec - t0.tv_sec >= 12 && now.tv_sec - last_hilog.tv_sec >= 5) {
+			/* decoded hilog stream, (re)started every 5 s once hilogd is up,
+			 * only during the debug window (see DEBUGLOG_SECS) */
+			int in_window = debuglog_secs < 0 || now.tv_sec - t0.tv_sec < debuglog_secs;
+			if (debuglog_secs != 0 && in_window && now.tv_sec - t0.tv_sec >= 12 &&
+			    now.tv_sec - last_hilog.tv_sec >= 5) {
 				hilog_stream_tick();
 				last_hilog = now;
+			}
+			if (!in_window && !debug_window_closed) {
+				debug_window_closed = 1;
+				if (hilog_pid > 0) {
+					kill(hilog_pid, SIGTERM);
+					waitpid(hilog_pid, NULL, 0);
+					hilog_pid = -1;
+				}
+				hilog_flowctrl(1);
+				klog("debug hilog stream stopped after %d s, hilog flow control back on "
+				     "(hmos.debuglog=1 keeps it)", debuglog_secs);
 			}
 			struct pollfd pfd = { .fd = in, .events = POLLIN };
 			if (poll(&pfd, 1, verbose_on ? 100 : 1000) == 0) {
@@ -892,7 +921,8 @@ static void start_logger(void)
 			if (verbose_on)
 				vparse_kmsg(line, n);
 			dirty = 1;
-			if (++lines % 20 == 0) {
+			/* after the debug window the idle flush above is enough */
+			if (++lines % 20 == 0 && !debug_window_closed) {
 				fdatasync(out);
 				dirty = 0;
 			}
@@ -1020,6 +1050,10 @@ int main(int argc, char **argv)
 		close(cfd);
 	}
 	verbose_on = strstr(cmdline, "hmos.verbose=1") != NULL;
+	if (strstr(cmdline, "hmos.debuglog=1"))
+		debuglog_secs = -1;
+	else if (strstr(cmdline, "hmos.debuglog=0"))
+		debuglog_secs = 0;
 	const char *ar = strstr(cmdline, "hmos.autorecovery=");
 	if (ar)
 		autorecovery_secs = atoi(ar + strlen("hmos.autorecovery="));

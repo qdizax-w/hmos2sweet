@@ -39,6 +39,23 @@ jobs:
           name: kernel
           path: prebuilt/kernel/
 
+  preinit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: build
+        run: |
+          export WORK=$RUNNER_TEMP/work
+          bash build/build_preinit.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preinit
+          path: prebuilt/ramdisk/init
+
   audio:
     runs-on: ubuntu-24.04
     steps:
@@ -74,7 +91,7 @@ jobs:
           path: patches/31-audio/files/lib64/libaudio_primary_impl.z.so
 
   collect:
-    needs: [kernel, audio]
+    needs: [kernel, audio, preinit]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -86,11 +103,16 @@ jobs:
         with:
           name: audio
           path: patches/31-audio/files/lib64/
+      - uses: actions/download-artifact@v4
+        with:
+          name: preinit
+          path: prebuilt/ramdisk/
       - uses: actions/upload-artifact@v4
         with:
           name: curtana-prebuilts
           path: |
             prebuilt/kernel/
+            prebuilt/ramdisk/init
             patches/31-audio/files/lib64/libaudio_primary_impl.z.so
       - name: commit
         if: ${{ inputs.commit }}
@@ -99,5 +121,6 @@ jobs:
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git rm -q --cached --ignore-unmatch prebuilt/kernel/xiaomi-sdmmagpie.dtb
           rm -f prebuilt/kernel/xiaomi-sdmmagpie.dtb
-          git add prebuilt/kernel patches/31-audio/files/lib64/libaudio_primary_impl.z.so
-          git commit -m "prebuilts: curtana kernel and audio VDI (CI build)" && git push || echo "nothing to commit"
+          chmod 755 prebuilt/ramdisk/init
+          git add prebuilt/kernel prebuilt/ramdisk/init patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+          git commit -m "prebuilts: curtana kernel, audio VDI and hmos-preinit (CI build)" && git push || echo "nothing to commit"
