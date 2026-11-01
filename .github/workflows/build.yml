@@ -51,7 +51,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang lld llvm unzip curl
-          tools/fetch_tools.sh
+          sh tools/fetch_tools.sh
       - name: download the OTA
         env:
           OTA_URL: ${{ inputs.ota_url }}
