@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- hmos2sweet: thermal policy for the Redmi Note 10 Pro (sm6150).
+<!-- hmos2curtana: thermal policy for the Redmi Note 9S (atoll / SM7125), from hmos2sweet.
 
      Huawei's policy is tuned for the Pura 70's virtual sensors (it shuts the
      phone down when "cpu" passes 34 C). On sweet the sensors are real, and the
@@ -9,7 +9,7 @@
        - dims the screen and trims background apps when the back gets hot,
        - shuts down before the battery or the SoC are damaged.
      Temperatures are in millidegrees Celsius. -->
-<thermal version="0.01" product="sweet">
+<thermal version="0.01" product="curtana">
     <base>
         <item tag="history_temp_count" value="10"/>
         <item tag="temperature_query_enum" value="soc,battery,shell,cpu,charger,ambient,ap,pa,gpu"/>

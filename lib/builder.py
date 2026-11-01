@@ -1,4 +1,4 @@
-"""Apply the selected patches to the OTA images and write the sweet ROM."""
+"""Apply the selected patches to the OTA images and write the curtana (Redmi Note 9S) ROM."""
 import importlib.util
 import json
 import os
@@ -9,11 +9,25 @@ from .util import REPO, step, info, warn, die, mkdirs, rmtree, human
 
 PREBUILT = os.path.join(REPO, "prebuilt")
 SUPER_PARTS = ["system", "vendor", "chip_prod", "sys_prod", "cust", "patch", "version", "preload"]
-CMDLINE = ("hardware=sweet default_boot_device=soc/1d84000.ufshc console=ttyMSM0,115200n8 "
-           "earlycon=msm_geni_serial,0x880000 service_locator.enable=1 lpm_levels.sleep_disabled=1 "
+# curtana (atoll / SM7125): same UFS controller as sweet, debug UART at 0xa88000 (sm6250-common BoardConfig)
+CMDLINE = ("hardware=curtana default_boot_device=soc/1d84000.ufshc console=ttyMSM0,115200n8 "
+           "earlycon=msm_geni_serial,0xa88000 service_locator.enable=1 lpm_levels.sleep_disabled=1 swiotlb=1 "
            "loop.max_part=7 buildvariant=user enforcing=0 hmos.permissive=1 hmos.noreboot=1 "
            "printk.devkmsg=on audit=0 firmware_class.path=/vendor/firmware")
 INIT_CFG = "etc/init/hmos2sweet.cfg"
+DTB = "cust-atoll-ab.dtb"
+# curtana's super partition (sm6250-common BoardConfigCommon.mk): 8 GiB, one 4 MiB reserve for LP metadata
+SUPER_SIZE = 8589934592
+SUPER_USABLE = SUPER_SIZE - 4 * 1024 * 1024
+DROPPABLE = ["preload"]  # removable preinstalled apps: left out when the images do not fit
+
+
+def check_kernel():
+    k = os.path.join(PREBUILT, "kernel")
+    if not all(os.path.isfile(os.path.join(k, f)) for f in ("Image.gz", DTB, "dtbo.img")):
+        die("the curtana kernel is not built yet (prebuilt/kernel/{Image.gz,%s,dtbo.img}): run the GitHub "
+            "workflow 'build curtana prebuilts' or build/build_kernel.sh on Linux, see prebuilt/kernel/README.md"
+            % DTB)
 
 
 class Context:
@@ -85,9 +99,9 @@ class Build:
             blobs += p["sweet_blobs"] or []
         if not blobs:
             return
-        step("Collecting firmware and audio configs from the sweet ROM")
+        step("Collecting firmware and audio configs from the curtana ROM")
         if not self.sweet_rom:
-            die("the selected patches need files from a Redmi Note 10 Pro ROM: pass --sweet-rom")
+            die("the selected patches need files from a Redmi Note 9S (curtana) ROM: pass --curtana-rom")
         img = sweetrom.vendor_image(self.sweet_rom, self.work)
         sweetrom.check_vendor(img)
         rmtree(self.blobs_dir)
@@ -125,6 +139,8 @@ class Build:
                 info("  removed /vendor/%s" % rel)
         for b in p["sweet_blobs"] or []:
             src = os.path.join(self.blobs_dir, b["to"])
+            if b.get("optional") and not os.path.exists(src):
+                continue
             if os.path.isdir(src):
                 for root, dirs, files in os.walk(src):
                     dirs.sort()
@@ -203,15 +219,43 @@ class Build:
     # -------------------------------------------------------------- boot
     def build_boot(self):
         step("Building boot.img")
-        rd = bootimg.build_ramdisk(self.images["ramdisk"], os.path.join(PREBUILT, "ramdisk", "init"))
+        check_kernel()
         k = os.path.join(PREBUILT, "kernel")
-        bootimg.build_boot(os.path.join(k, "Image.gz"), rd, os.path.join(k, "xiaomi-sdmmagpie.dtb"), CMDLINE,
+        rd = bootimg.build_ramdisk(self.images["ramdisk"], os.path.join(PREBUILT, "ramdisk", "init"))
+        bootimg.build_boot(os.path.join(k, "Image.gz"), rd, os.path.join(k, DTB), CMDLINE,
                            os.path.join(self.out, "boot.img"))
         shutil.copyfile(os.path.join(k, "dtbo.img"), os.path.join(self.out, "dtbo.img"))
 
     # ------------------------------------------------------------ others
+    def check_super(self):
+        """The HarmonyOS partitions must fit curtana's 8 GiB super (sweet has 8.5 GiB)."""
+        def used(names):
+            return sum((os.path.getsize(self._img(n)) + (1 << 20) - 1) // (1 << 20) * (1 << 20) for n in names)
+        names = [n for n in SUPER_PARTS if n in self.images or os.path.exists(os.path.join(self.out, n + ".img"))]
+        total = used(names)
+        info("super: %s of %s" % (human(total), human(SUPER_USABLE)))
+        for n in DROPPABLE:
+            if total <= SUPER_USABLE:
+                break
+            if n in names:
+                names.remove(n)
+                self.images.pop(n, None)
+                p = os.path.join(self.out, n + ".img")
+                if os.path.exists(p):
+                    os.remove(p)
+                total = used(names)
+                warn("%s.img left out: the images do not fit curtana's 8 GiB super (now %s)" % (n, human(total)))
+        if total > SUPER_USABLE:
+            die("the HarmonyOS images need %s, curtana's super partition has %s: use a smaller OTA "
+                "or remove apps from system/preload" % (human(total), human(SUPER_USABLE)))
+
+    def _img(self, n):
+        p = os.path.join(self.out, n + ".img")
+        return p if os.path.exists(p) else self.images[n]
+
     def copy_untouched(self):
         step("Copying the unchanged partitions")
+        self.check_super()
         for n in SUPER_PARTS:
             if n in self.images and not os.path.exists(os.path.join(self.out, n + ".img")):
                 dst = os.path.join(self.out, n + ".img")

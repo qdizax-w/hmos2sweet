@@ -4,7 +4,7 @@
   "requires": [
     "10-display"
   ],
-  "description": "Mesa 26 (freedreno on kgsl) as the system EGL/GLES driver instead of Huawei's Maleoon driver, Adreno firmware from the sweet ROM, Vulkan ICD removed so render_service stays on GLES.",
+  "description": "Mesa 26 (freedreno on kgsl) as the system EGL/GLES driver instead of Huawei's Maleoon driver, Adreno firmware from the curtana ROM (same file names as sweet), Vulkan ICD removed so render_service stays on GLES.",
   "vendor_files": [
     {
       "src": "files/lib64/chipsetsdk/libEGL_impl.so",

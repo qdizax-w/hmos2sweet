@@ -1,7 +1,8 @@
-From b9041346d38a063f703442d65746ca33a316cf55 Mon Sep 17 00:00:00 2001
+From e514bb612ee3b139849ccf183865f5a239892aef Mon Sep 17 00:00:00 2001
 From: hmos2sweet <hmos2sweet@localhost>
 Date: Fri, 23 Oct 2026 22:22:48 +0200
-Subject: [PATCH] mm: memcg: accept the HarmonyOS memmgr hyperhold/zswapd files
+Subject: [PATCH 15/18] mm: memcg: accept the HarmonyOS memmgr hyperhold/zswapd
+ files
 
 memmgrservice writes memory.name, memory.app_score, memory.zswapd_* ...
 in /dev/memcg. Without them its init fails, SA 1909 is never published
@@ -146,5 +147,5 @@ index 6e530c2bd..42bd1922f 100644
  	/*
  	 * Kmem cache creation is mostly done with the slab_mutex held,
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

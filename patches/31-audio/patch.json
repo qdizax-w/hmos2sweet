@@ -1,10 +1,10 @@
 {
-  "name": "Audio: speakers, earpiece, headphones, microphone",
+  "name": "Audio: speaker, earpiece, headphones, microphone",
   "default": true,
   "requires": [
     "30-remoteproc"
   ],
-  "description": "tinyalsa-based audio HAL (OpenHarmony VDI) for the sm6150 sound card and the two Awinic speaker amplifiers, using the sweet mixer paths. The audio policy is trimmed to what the hardware can do (no MMAP/offload/hotword pipes). Use it together with 'ADSP sensors domain', otherwise the DSP restarts every ~40 s.",
+  "description": "tinyalsa-based audio HAL (OpenHarmony VDI) for the atoll sound card (WCD937x codec, TAS2562 speaker amplifier with its SmartPA feedback), using the curtana mixer paths (mixer_paths_wcd937x.xml). The audio policy is trimmed to what the hardware can do (no MMAP/offload/hotword pipes). Use it together with 'ADSP sensors domain', otherwise the DSP may restart every ~40 s. NEEDS A REBUILD of libaudio_primary_impl.z.so (build/build_ohos.sh): the prebuilt one in files/ is still sweet's until then.",
   "vendor_files": [
     {
       "src": "files/lib64/libaudio_primary_impl.z.so",
@@ -14,16 +14,8 @@
   ],
   "sweet_blobs": [
     {
-      "from": "etc/mixer_paths_idp.xml",
-      "to": "etc/sweet/mixer_paths_idp.xml"
-    },
-    {
-      "from": "etc/mixer_paths_overlay_static.xml",
-      "to": "etc/sweet/mixer_paths_overlay_static.xml"
-    },
-    {
-      "from": "firmware/awinic/",
-      "to": "firmware/awinic/"
+      "from": "etc/mixer_paths_wcd937x.xml",
+      "to": "etc/sweet/mixer_paths_wcd937x.xml"
     }
   ],
   "markers": [

@@ -1,7 +1,7 @@
 {
-  "name": "IR blaster",
-  "default": true,
-  "description": "The consumer IR HDI service loads a small driver that sends the patterns through the sweet IR LED (ir-spi, /dev/lirc0) instead of Huawei's IR chip.",
+  "name": "IR blaster - NOT WORKING ON CURTANA YET",
+  "default": false,
+  "description": "hmos2sweet's IR driver sends through /dev/lirc0 (ir-spi LIRC driver). The curtana kernel has no LIRC/ir-spi driver (CONFIG_RC_CORE is off; the IR LED is on spidev), so this stays off until the driver is ported. The consumer IR HDI service loads a small driver that sends the patterns through the sweet IR LED (ir-spi, /dev/lirc0) instead of Huawei's IR chip.",
   "vendor_files": [
     {
       "src": "files/lib64/libconsumerir.so",

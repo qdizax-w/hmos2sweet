@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pull the hmos2sweet boot logs while the phone is in recovery (TWRP/OrangeFox, adb enabled).
+# Pull the hmos2curtana (hmos2sweet) boot logs while the phone is in recovery (TWRP/OrangeFox, adb enabled).
 DEST="$(dirname "$0")/logs_$(date +%Y%m%d_%H%M)"
 mkdir -p "$DEST"
 adb wait-for-recovery

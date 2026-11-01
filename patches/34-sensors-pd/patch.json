@@ -4,7 +4,7 @@
   "requires": [
     "30-remoteproc"
   ],
-  "description": "The sensors protection domain on the ADSP waits for a HLOS daemon that serves its configuration files; without it the ADSP watchdog restarts the whole DSP (and cuts the audio) every ~40 s. hexagonrpcd (linux-msm/hexagonrpc, ported to the downstream adsprpc driver) serves the sweet sensor configs, the ACDB file and the sensor registry from the persist partition.",
+  "description": "The sensors protection domain on the ADSP waits for a HLOS daemon that serves its configuration files; without it the ADSP watchdog restarts the whole DSP (and cuts the audio) every ~40 s. hexagonrpcd (linux-msm/hexagonrpc, ported to the downstream adsprpc driver) serves the curtana sensor configs (atoll_*.json), the ACDB file and the sensor registry from the persist partition.",
   "vendor_files": [
     {
       "src": "files/bin/hexagonrpcd",

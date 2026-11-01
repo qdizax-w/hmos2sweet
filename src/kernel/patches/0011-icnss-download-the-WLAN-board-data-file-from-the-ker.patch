@@ -1,7 +1,7 @@
-From 12239d99914bb7f50fefa7fb854a56a1ae7b506d Mon Sep 17 00:00:00 2001
+From 17a4d72bb7f491b0468132d2efd827ae12613b28 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Tue, 20 Oct 2026 06:37:32 +0200
-Subject: [PATCH 11/12] icnss: download the WLAN board data file from the
+Subject: [PATCH 11/18] icnss: download the WLAN board data file from the
  kernel
 
 Android's cnss-daemon sends bdwlan.<board id> to the WCN3990 firmware over
@@ -17,7 +17,7 @@ Claude-Session: https://claude.ai/code/session_013BnD2kisuqqyfphx6EWB2p
  3 files changed, 145 insertions(+)
 
 diff --git a/drivers/soc/qcom/icnss.c b/drivers/soc/qcom/icnss.c
-index 236f5dd29..6d7256a01 100644
+index 15acd9450..b3fcfbf4c 100644
 --- a/drivers/soc/qcom/icnss.c
 +++ b/drivers/soc/qcom/icnss.c
 @@ -1042,6 +1042,9 @@ static int icnss_driver_event_server_arrive(void *data)
@@ -209,5 +209,5 @@ index 983f43071..588d540a4 100644
  					void *msg, unsigned int msg_len);
  int wlfw_dynamic_feature_mask_send_sync_msg(struct icnss_priv *priv,
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

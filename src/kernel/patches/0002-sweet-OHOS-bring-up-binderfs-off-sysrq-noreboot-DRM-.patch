@@ -1,7 +1,7 @@
-From 8fe5d6523e245532b8401c460f5389f36b67d0dc Mon Sep 17 00:00:00 2001
+From a3280fc97fbf18fcfa0874ec6868d34dcfbd84c2 Mon Sep 17 00:00:00 2001
 From: Alessio Dondoni <alessio.dondoni08@gmail.com>
 Date: Sun, 18 Oct 2026 20:10:24 +0200
-Subject: [PATCH 02/12] sweet: OHOS bring-up: binderfs off, sysrq/noreboot, DRM
+Subject: [PATCH 02/18] sweet: OHOS bring-up: binderfs off, sysrq/noreboot, DRM
  auth for display HALs
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -57,5 +57,5 @@ index 721a15967..a77aa67e2 100644
 +
  endmenu
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

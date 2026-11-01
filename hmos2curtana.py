@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""hmos2sweet: turn a HarmonyOS full OTA package into a ROM for the Redmi Note 10 Pro (sweet).
+"""hmos2curtana: turn a HarmonyOS full OTA package into a ROM for the Redmi Note 9S (curtana).
 
-  python3 hmos2sweet.py --ota update_full_base.zip --sweet-rom lineage-sweet.zip --out out/
+A port of hmos2sweet (https://github.com/tsryzenstech/hmos2sweet) from the Redmi Note 10 Pro (sweet).
+
+  python3 hmos2curtana.py --ota update_full_base.zip --curtana-rom lineage-miatoll.zip --out out/
 
 Without --patches an interactive list lets you pick the patches. See README.md.
 """
@@ -19,11 +21,24 @@ from lib.util import Fatal, step, info, warn, tool, human  # noqa: E402
 VERSION = "1.0"
 
 
+def case_sensitive(folder):
+    """True if 'folder' tells 'a' and 'A' apart."""
+    probe = os.path.join(folder, ".hmos2curtana_case_probe")
+    try:
+        with open(probe, "w"):
+            pass
+        return not os.path.exists(probe.upper().replace(folder.upper(), folder, 1))
+    finally:
+        if os.path.exists(probe):
+            os.remove(probe)
+
+
 def parse_args():
-    ap = argparse.ArgumentParser(description="HarmonyOS full OTA -> Redmi Note 10 Pro (sweet) ROM")
+    ap = argparse.ArgumentParser(description="HarmonyOS full OTA -> Redmi Note 9S (curtana) ROM")
     ap.add_argument("--ota", help="HarmonyOS full OTA package (update_full_base.zip or update.bin)")
-    ap.add_argument("--sweet-rom", help="a Redmi Note 10 Pro ROM zip (vendor.new.dat.br) or its vendor.img: "
-                                        "source of the firmware and audio configs")
+    ap.add_argument("--curtana-rom", "--sweet-rom", dest="sweet_rom",
+                    help="a Redmi Note 9S / miatoll ROM zip (LineageOS or crDroid, vendor.new.dat.br) or its "
+                         "vendor.img: source of the firmware and audio configs")
     ap.add_argument("--out", default="out", help="output folder (default: out)")
     ap.add_argument("--work", help="work folder for extracted images (default: <out>/../work)")
     ap.add_argument("--patches", help="comma separated patch list instead of the menu: 'defaults', 'all', "
@@ -69,10 +84,11 @@ def main():
         print("--ota is required (see --help)")
         return 2
 
-    print("hmos2sweet %s - HarmonyOS -> Redmi Note 10 Pro (sweet)" % VERSION)
+    print("hmos2curtana %s - HarmonyOS -> Redmi Note 9S (curtana)" % VERSION)
     for t in ("extract.erofs", "mkfs.erofs", "fsck.erofs", "dump.erofs", "debugfs"):
         tool(t)
 
+    builder.check_kernel()
     ota = hwota.HwOta(a.ota)
     info("OTA: %s, %d components" % (ota.version or "unknown version", len(ota.components)))
 
@@ -98,6 +114,17 @@ def main():
         out = out.rstrip("/\\") + "_" + stamp
         warn("output folder not empty, writing to %s" % out)
 
+    os.makedirs(work, exist_ok=True)
+    if not case_sensitive(work):
+        print("\nERROR: the work folder %s is on a case-insensitive file system (macOS default, Windows).\n"
+              "HarmonyOS images contain names that differ only in case: they would be merged and the system\n"
+              "image would be broken. On macOS create a case-sensitive volume and use it for --work/--out:\n"
+              "  hdiutil create -size 60g -type SPARSE -fs 'Case-sensitive APFS' -volname hmos ~/hmos.sparseimage\n"
+              "  hdiutil attach ~/hmos.sparseimage      # mounted on /Volumes/hmos\n"
+              "  python3 hmos2curtana.py ... --work /Volumes/hmos/work --out /Volumes/hmos/out" % work,
+              file=sys.stderr)
+        return 1
+
     t0 = time.time()
     b = builder.Build(ota, a.sweet_rom, work, out, chosen)
     b.extract_ota()
@@ -109,8 +136,8 @@ def main():
 
     step("Writing flash scripts")
     supers = [n for n in builder.SUPER_PARTS if os.path.isfile(os.path.join(out, n + ".img"))]
-    summary = ["hmos2sweet %s" % VERSION, "OTA: %s (%s)" % (os.path.basename(a.ota), ota.version or "?"),
-               "sweet ROM: %s" % (os.path.basename(a.sweet_rom) if a.sweet_rom else "-"),
+    summary = ["hmos2curtana %s" % VERSION, "OTA: %s (%s)" % (os.path.basename(a.ota), ota.version or "?"),
+               "curtana ROM: %s" % (os.path.basename(a.sweet_rom) if a.sweet_rom else "-"),
                "built: %s" % time.strftime("%Y-%m-%d %H:%M"), "", "patches:"]
     summary += ["  [%s] %s - %s" % ("x" if p in chosen else " ", p.id, p.name) for p in all_patches]
     summary += ["", "images: " + ", ".join(supers + ["boot", "dtbo"])]
@@ -127,7 +154,7 @@ def main():
     step("Done in %d min: %s" % ((time.time() - t0) / 60, out))
     size = sum(os.path.getsize(os.path.join(out, f)) for f in os.listdir(out) if f.endswith(".img"))
     info("%s of images. First time on this phone: install_clean.bat / .sh (wipes data)." % human(size))
-    info("Already on hmos2sweet: update_keep_data.bat / .sh")
+    info("Already on hmos2curtana: update_keep_data.bat / .sh")
     return 0
 
 

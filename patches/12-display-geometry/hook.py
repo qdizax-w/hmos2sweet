@@ -1,4 +1,6 @@
-"""Display geometry for the sweet panel (1080x2400, centred 24 px punch hole at y=52).
+"""Display geometry for the curtana panel (6.67" 1080x2400 LCD, centred punch hole).
+
+Cutout from LineageOS sm6250-common (config_mainBuiltInDisplayCutout: 72 x 102 px, centred, from the top).
 
 Takes the window manager config shipped in sys_prod and rewrites the values
 that describe the screen, so other keys of newer HarmonyOS versions are kept.
@@ -8,8 +10,8 @@ import re
 PATH = "etc/window/resources/display_manager_config.xml"
 VALUES = {
     "dpi": "460",
-    "cutoutArea": "444 26 192 52",
-    "defaultDisplayCutoutPath": "M514 26 L566 26 v 52 h -52 Z",
+    "cutoutArea": "444 0 192 102",
+    "defaultDisplayCutoutPath": "M504 0 L576 0 v 102 h -72 Z",
     "curvedScreenBoundary": "0 0 0 0",
 }
 
@@ -26,6 +28,6 @@ def apply(ctx):
         else:
             s = s.replace("</Configs>", "  <%s>%s</%s>\n</Configs>" % (tag, val, tag))
     s = re.sub(r'<isWaterfallDisplay enable="true"', '<isWaterfallDisplay enable="false"', s)
-    s = s.replace("<Configs>", "<!-- hmos2sweet: Redmi Note 10 Pro (sweet) geometry -->\n<Configs>", 1)
+    s = s.replace("<Configs>", "<!-- hmos2curtana: Redmi Note 9S (curtana) geometry -->\n<Configs>", 1)
     ctx.vendor.write("etc/sweet/display_manager_config.xml", s.encode("utf-8"))
     ctx.info("  display_manager_config.xml: dpi 460, centred cutout")

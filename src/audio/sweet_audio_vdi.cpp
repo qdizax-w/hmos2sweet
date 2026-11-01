@@ -1,20 +1,24 @@
 /*
- * libaudio_primary_impl.z.so for HarmonyOS on the Redmi Note 10 Pro (sweet).
+ * libaudio_primary_impl.z.so for HarmonyOS on the Redmi Note 9S (curtana).
+ * (hmos2curtana: ported from hmos2sweet's sm6150 HAL to atoll / SM7125.)
  *
  * The HarmonyOS audio HDI host loads /vendor/lib64/libaudio_primary_impl.z.so
  * through the OpenHarmony "VDI" interface (AudioManagerCreateIfInstance ->
  * IAudioManagerVdi / IAudioAdapterVdi / IAudioRenderVdi / IAudioCaptureVdi).
  * Huawei's library behind that interface drives the Kirin HiFi DSP; this one
- * drives the Qualcomm sm6150 sound card (ADSP + Bolero codec + two Awinic
- * aw882xx speaker amplifiers) with tinyalsa:
+ * drives the Qualcomm atoll sound card (ADSP + Bolero RX/TX macros + WCD937x
+ * codec, one TI TAS2562 smart amplifier on TERT_MI2S for the speaker) with
+ * tinyalsa:
  *
  *   playback  PCM 0  (MultiMedia1, "deep-buffer-playback")  first stream
- *             PCM 13 (MultiMedia5, "low-latency-playback")  a concurrent one
+ *             PCM 9  (MultiMedia5, "low-latency-playback")  a concurrent one
  *   capture   PCM 0  (MultiMedia1, "audio-record")
+ *   speaker feedback PCM 32 (USECASE_AUDIO_SPKR_CALIB_TX) while the TAS2562
+ *             SmartPA algorithm runs, like LineageOS' audio_amplifier.tas2562
  *
- * Mixer routes come from the stock sweet XMLs (mixer_paths_idp.xml with the
- * mixer_paths_overlay_static.xml overlay), so device paths ("speaker",
- * "headphones", "handset", "handset-mic"...) are the same as on MIUI.
+ * PCM ids from sm6250-common audio_platform_info_intcodec.xml. Mixer routes come
+ * from the ROM's mixer_paths_wcd937x.xml, so device paths ("speaker",
+ * "headphones", "handset", "handset-mic"...) are the same as on Android.
  *
  * Without a sound card (ADSP not booted) streams still "play": frames are
  * consumed in real time and capture returns silence, so the audio server
@@ -50,14 +54,14 @@ constexpr int32_t ERR_INVALID = -3;
 
 constexpr unsigned int CARD = 0;
 constexpr unsigned int PCM_DEEP_BUFFER = 0;
-constexpr unsigned int PCM_LOW_LATENCY = 13;
+constexpr unsigned int PCM_LOW_LATENCY = 9;
+constexpr unsigned int PCM_SPKR_FEEDBACK = 32;
 constexpr unsigned int PCM_RECORD = 0;
 constexpr unsigned int PERIOD_FRAMES = 960; /* 20 ms at 48 kHz */
 constexpr unsigned int PERIOD_COUNT = 4;
 
 const char *MIXER_XML[] = {
-    "/vendor/etc/sweet/mixer_paths_idp.xml",
-    "/vendor/etc/sweet/mixer_paths_overlay_static.xml",
+    "/vendor/etc/sweet/mixer_paths_wcd937x.xml",
 };
 
 /* ------------------------------------------------------------------ log */
@@ -572,11 +576,64 @@ void BackendFor(const std::string &device, uint32_t rate)
         g_route.SetCtl("RX_CDC_DMA_RX_0 SampleRate", r);
         g_route.SetCtl("RX_CDC_DMA_RX_0 Format", "S16_LE");
     } else {
-        /* aw882xx amplifiers on the primary MI2S port, 24 bit like the stock HAL */
-        g_route.SetCtl("PRIM_MI2S_RX SampleRate", r);
-        g_route.SetCtl("PRIM_MI2S_RX Format", "S24_LE");
-        g_route.SetCtl("PRIM_MI2S_RX Channels", "Two");
+        /* TAS2562 (mono speaker) on the tertiary MI2S port, 24 bit like the stock HAL */
+        g_route.SetCtl("TERT_MI2S_RX SampleRate", r);
+        g_route.SetCtl("TERT_MI2S_RX Format", "S24_LE");
+        g_route.SetCtl("TERT_MI2S_RX Channels", "One");
     }
+}
+
+/*
+ * TAS2562 SmartPA (speaker protection algorithm on the ADSP). LineageOS'
+ * audio_amplifier.tas2562 does this for every speaker stream: select the
+ * algorithm profile, enable it and keep the I/V feedback capture (TERT_MI2S_TX)
+ * running. Reference counted: both playback front ends can use the speaker.
+ * A failure only means the amplifier runs without the algorithm.
+ * Caller holds g_route.lock.
+ */
+struct pcm *g_spkrFb = nullptr;
+int g_spkrUsers = 0;
+
+void SmartPaStart()
+{
+    if (g_spkrUsers++ > 0) {
+        return;
+    }
+    g_route.SetCtl("TAS25XX_ALGO_PROFILE", "MUSIC");
+    g_route.SetCtl("TAS25XX_SMARTPA_ENABLE", "ENABLE");
+    g_route.Apply("spkr-vi-record");
+    struct pcm_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.channels = 2;
+    cfg.rate = 48000;
+    cfg.period_size = 256;
+    cfg.period_count = 4;
+    cfg.format = PCM_FORMAT_S24_LE;
+    struct pcm *p = pcm_open(CARD, PCM_SPKR_FEEDBACK, PCM_IN, &cfg);
+    if (!p || !pcm_is_ready(p) || pcm_start(p) < 0) {
+        LOGE("speaker feedback pcm %u: %s", PCM_SPKR_FEEDBACK, p ? pcm_get_error(p) : "no memory");
+        if (p) {
+            pcm_close(p);
+        }
+        g_route.Reset("spkr-vi-record");
+        g_route.SetCtl("TAS25XX_SMARTPA_ENABLE", "DISABLE");
+        return;
+    }
+    g_spkrFb = p;
+    LOGI("TAS2562 SmartPA on (feedback pcm %u)", PCM_SPKR_FEEDBACK);
+}
+
+void SmartPaStop()
+{
+    if (g_spkrUsers <= 0 || --g_spkrUsers > 0) {
+        return;
+    }
+    if (g_spkrFb) {
+        pcm_close(g_spkrFb);
+        g_spkrFb = nullptr;
+        g_route.Reset("spkr-vi-record");
+    }
+    g_route.SetCtl("TAS25XX_SMARTPA_ENABLE", "DISABLE");
 }
 
 /* caller holds r->lock */
@@ -588,6 +645,9 @@ void RenderClose(Render *r)
     pcm_close(r->pcm);
     r->pcm = nullptr;
     std::lock_guard<std::mutex> g(g_route.lock);
+    if (r->devicePath == "speaker") {
+        SmartPaStop();
+    }
     g_route.Reset(r->usecasePath);
     g_route.Reset(r->devicePath);
     if (r->fe >= 0) {
@@ -657,6 +717,9 @@ bool RenderOpen(Render *r)
         g_route.Reset(r->usecasePath);
         g_route.Reset(r->devicePath);
         return false;
+    }
+    if (r->devicePath == "speaker") {
+        SmartPaStart();
     }
     r->pcm = p;
     r->fe = fe;
@@ -1870,7 +1933,7 @@ struct IAudioManagerVdi g_manager = {MGetAllAdapters, MLoadAdapter, MUnloadAdapt
 
 extern "C" EXPORT struct IAudioManagerVdi *AudioManagerCreateIfInstance(void)
 {
-    LOGI("sweet audio VDI (tinyalsa, sm6150)");
+    LOGI("sweet audio VDI (tinyalsa, curtana/atoll)");
     return &g_manager;
 }
 

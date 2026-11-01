@@ -11,7 +11,18 @@ PATH = "etc/audio/audio_policy_config.xml"
 DROP_PIPES = ("fast_output", "offload_output", "fast_input", "wakeup_input")
 
 
+def _check_prebuilt(ctx):
+    """hmos2curtana: the HAL must be the curtana build (build/build_audio.sh or the CI workflow)."""
+    import os
+    so = os.path.join(os.path.dirname(os.path.abspath(__file__)), "files", "lib64", "libaudio_primary_impl.z.so")
+    with open(so, "rb") as fh:
+        if b"mixer_paths_wcd937x.xml" not in fh.read():
+            ctx.warn("  libaudio_primary_impl.z.so is still hmos2sweet's (sm6150) build: there will be NO SOUND on "
+                     "curtana. Rebuild it with the GitHub workflow or build/build_audio.sh, then convert again.")
+
+
 def apply(ctx):
+    _check_prebuilt(ctx)
     v = ctx.vendor
     if not v.exists(PATH):
         ctx.warn("  /vendor/%s not found: audio policy left as is" % PATH)

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- hmos2sweet: thermal HDI for the Redmi Note 10 Pro (sm6150).
+<!-- hmos2curtana: thermal HDI for the Redmi Note 9S (atoll / SM7125).
      Real thermal zones instead of the simulated Kirin nodes. "replace" is the
      name the thermal service sees (see thermal_service_config.xml).
        soc      cpuss-0-usr       CPU subsystem
        cpu      cpu-1-0-usr       big cluster core
        gpu      gpuss-0-usr       Adreno 618
        battery  battery           fuel gauge (qpnp-qg)
-       shell    quiet-therm-adc   skin sensor near the back cover
-       ambient  xo-therm-adc      crystal oscillator, close to ambient
-       charger  conn-therm-adc    USB connector
-       pa       rf-pa0-therm-adc  modem power amplifier
+       shell    quiet-therm-usr   skin sensor near the back cover
+       ambient  xo-therm-usr      crystal oscillator, close to ambient
+       charger  conn-therm-usr    USB connector
+       pa       pa-therm0-usr     modem power amplifier
        ap       cpuss-1-usr       second CPU subsystem sensor -->
-<thermal version="0.01" product="sweet">
+<thermal version="0.01" product="curtana">
     <base>
         <item tag="sim_tz" value="0"/>
     </base>
@@ -22,10 +22,10 @@
             <thermal_zone type="cpu-1-0-usr" replace="cpu"/>
             <thermal_zone type="gpuss-0-usr" replace="gpu"/>
             <thermal_zone type="battery" replace="battery"/>
-            <thermal_zone type="quiet-therm-adc" replace="shell"/>
-            <thermal_zone type="xo-therm-adc" replace="ambient"/>
-            <thermal_zone type="conn-therm-adc" replace="charger"/>
-            <thermal_zone type="rf-pa0-therm-adc" replace="pa"/>
+            <thermal_zone type="quiet-therm-usr" replace="shell"/>
+            <thermal_zone type="xo-therm-usr" replace="ambient"/>
+            <thermal_zone type="conn-therm-usr" replace="charger"/>
+            <thermal_zone type="pa-therm0-usr" replace="pa"/>
             <thermal_zone type="cpuss-1-usr" replace="ap"/>
         </group>
     </polling>

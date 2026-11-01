@@ -1,5 +1,9 @@
 # How the port works
 
+> hmos2curtana: this document describes hmos2sweet's design, which hmos2curtana keeps. The curtana-specific
+> differences (kernel base, DTB, command line, audio routing, 60 Hz, super size) are listed in the README,
+> section "What changed from hmos2sweet".
+
 ## Starting point
 
 - **Donor**: Huawei Pura 70 (Kirin 9010), HarmonyOS 5.1 = OpenHarmony 5.0/5.1 + Huawei services.

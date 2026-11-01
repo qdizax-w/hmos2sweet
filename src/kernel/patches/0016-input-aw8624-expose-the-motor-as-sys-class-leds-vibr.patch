@@ -1,28 +1,29 @@
-From 71df8b7e743c2a1aabb0d0a1db09c330947b8173 Mon Sep 17 00:00:00 2001
+From b1e7aa50805f8cb914bfd47cddebaa4f53a31460 Mon Sep 17 00:00:00 2001
 From: hmos2sweet <hmos2sweet@localhost>
 Date: Sat, 24 Oct 2026 09:17:32 +0200
-Subject: [PATCH] input: aw8624: expose the motor as /sys/class/leds/vibrator
+Subject: [PATCH 16/18] input: aw8624: expose the motor as
+ /sys/class/leds/vibrator
 
 The HarmonyOS vibrator HDI drives timed vibrations through the
 Android-style LED class device (state, duration, activate). Mirror the
 driver's own duration/activate attributes there.
 ---
- drivers/input/misc/aw8624_haptic/aw8624.c | 81 +++++++++++++++++++++++
+ drivers/misc/aw8624_haptic/aw8624.c | 81 +++++++++++++++++++++++++++++
  1 file changed, 81 insertions(+)
 
-diff --git a/drivers/input/misc/aw8624_haptic/aw8624.c b/drivers/input/misc/aw8624_haptic/aw8624.c
-index 4058c9594..ef445fb7a 100644
---- a/drivers/input/misc/aw8624_haptic/aw8624.c
-+++ b/drivers/input/misc/aw8624_haptic/aw8624.c
-@@ -14,6 +14,7 @@
-  * option) any later version.
+diff --git a/drivers/misc/aw8624_haptic/aw8624.c b/drivers/misc/aw8624_haptic/aw8624.c
+index f7bde8a84..5af5afff3 100755
+--- a/drivers/misc/aw8624_haptic/aw8624.c
++++ b/drivers/misc/aw8624_haptic/aw8624.c
+@@ -15,6 +15,7 @@
   */
+ 
  #include <linux/module.h>
 +#include <linux/leds.h>
  #include <linux/kernel.h>
  #include <linux/i2c.h>
  #include <linux/of_gpio.h>
-@@ -4169,6 +4170,85 @@ static struct attribute_group aw8624_vibrator_attribute_group = {
+@@ -3954,6 +3955,85 @@ static struct attribute_group aw8624_vibrator_attribute_group = {
   * i2c driver
   *
   ******************************************************/
@@ -108,14 +109,14 @@ index 4058c9594..ef445fb7a 100644
  static int
  aw8624_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
  {
-@@ -4359,6 +4439,7 @@ aw8624_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+@@ -4145,6 +4225,7 @@ aw8624_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
  	}
  
  	g_aw8624 = aw8624;
 +	aw8624_register_led_vibrator(aw8624);
  
- 	pr_info("%s: probe completed successfully!\n", __func__);
+ 	pr_info("%s probe completed successfully!\n", __func__);
  
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

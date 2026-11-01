@@ -1,7 +1,7 @@
-From 3874d32a47755035573e20aad62d861fbafdbd8c Mon Sep 17 00:00:00 2001
+From 557a948bf0a18d6d343b8aa186368c47f270468d Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Tue, 20 Oct 2026 06:37:32 +0200
-Subject: [PATCH 12/12] reboot: hmos.noreboot also refuses 'panic:<reason>'
+Subject: [PATCH 12/18] reboot: hmos.noreboot also refuses 'panic:<reason>'
  restarts
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -24,5 +24,5 @@ index 32091c81a..f37f22460 100644
  				 current->comm, task_pid_nr(current));
  			ret = -EPERM;
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

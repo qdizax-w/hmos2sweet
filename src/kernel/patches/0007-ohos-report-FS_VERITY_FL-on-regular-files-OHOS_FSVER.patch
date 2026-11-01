@@ -1,7 +1,7 @@
-From 3187a505a441afe27c4c25448c401c70eeb42f94 Mon Sep 17 00:00:00 2001
+From d26e261276216be4215152372e626a00d6d0f106 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Mon, 19 Oct 2026 07:05:39 +0200
-Subject: [PATCH 07/12] ohos: report FS_VERITY_FL on regular files
+Subject: [PATCH 07/18] ohos: report FS_VERITY_FL on regular files
  (OHOS_FSVERITY_STUB)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -33,5 +33,5 @@ index 04e947d4c..0f2112216 100644
  
  	switch (cmd) {
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

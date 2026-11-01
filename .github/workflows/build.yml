@@ -1,0 +1,103 @@
+# Builds what hmos2curtana changes compared to hmos2sweet and cannot be built on macOS:
+#   kernel: prebuilt/kernel/{Image.gz,cust-atoll-ab.dtb,dtbo.img}       (needs Linux)
+#   audio:  patches/31-audio/files/lib64/libaudio_primary_impl.z.so     (needs the OTA's libc/libc++)
+# Run it from the Actions tab ("Run workflow"), then download the "curtana-prebuilts" artifact and
+# unzip it over the repository (or let the "commit" option push the files back to the branch).
+name: build curtana prebuilts
+
+on:
+  workflow_dispatch:
+    inputs:
+      ota_url:
+        description: "HarmonyOS full OTA (Pura 70) for the audio sysroot; empty = first entry of lib/fetchfw_catalog.json"
+        required: false
+        default: ""
+      commit:
+        description: "commit the built files back to this branch"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi \
+            bc bison flex libssl-dev libelf-dev python3 make cpio
+      - name: build
+        run: |
+          export WORK=$RUNNER_TEMP/work
+          bash build/build_kernel.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kernel
+          path: prebuilt/kernel/
+
+  audio:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: free disk space (the OTA is ~5.7 GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm unzip curl
+          tools/fetch_tools.sh
+      - name: download the OTA
+        env:
+          OTA_URL: ${{ inputs.ota_url }}
+        run: |
+          if [ -z "$OTA_URL" ]; then
+            OTA_URL=$(python3 -c "import json;print(json.load(open('lib/fetchfw_catalog.json'))['packages'][0]['url'])")
+          fi
+          curl -L --retry 5 -o "$RUNNER_TEMP/ota.zip" "$OTA_URL"
+      - name: sysroot + audio VDI
+        run: |
+          export WORK=$RUNNER_TEMP/work
+          python3 build/extract_ota_images.py "$RUNNER_TEMP/ota.zip" "$RUNNER_TEMP/hm"
+          rm -f "$RUNNER_TEMP/ota.zip"
+          bash build/make_sysroot.sh "$RUNNER_TEMP/hm"
+          export SYSROOT=$WORK/sysroot
+          bash build/build_audio.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio
+          path: patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+
+  collect:
+    needs: [kernel, audio]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kernel
+          path: prebuilt/kernel/
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+          path: patches/31-audio/files/lib64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: curtana-prebuilts
+          path: |
+            prebuilt/kernel/
+            patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+      - name: commit
+        if: ${{ inputs.commit }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git rm -q --cached --ignore-unmatch prebuilt/kernel/xiaomi-sdmmagpie.dtb
+          rm -f prebuilt/kernel/xiaomi-sdmmagpie.dtb
+          git add prebuilt/kernel patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+          git commit -m "prebuilts: curtana kernel and audio VDI (CI build)" && git push || echo "nothing to commit"

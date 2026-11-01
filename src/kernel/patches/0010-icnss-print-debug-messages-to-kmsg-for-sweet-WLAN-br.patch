@@ -1,7 +1,7 @@
-From 8bbababe62c913993d7983200fbdec742eeb1005 Mon Sep 17 00:00:00 2001
+From d43ba57a9ffdeb23c7d607d8ffe1f774fb2d98c8 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Mon, 19 Oct 2026 19:15:13 +0200
-Subject: [PATCH 10/12] icnss: print debug messages to kmsg for sweet WLAN
+Subject: [PATCH 10/18] icnss: print debug messages to kmsg for sweet WLAN
  bring-up
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -11,7 +11,7 @@ Claude-Session: https://claude.ai/code/session_013BnD2kisuqqyfphx6EWB2p
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/soc/qcom/icnss_private.h b/drivers/soc/qcom/icnss_private.h
-index 2aacf3bb1..59e215595 100644
+index ae2f13205..0db2df81a 100644
 --- a/drivers/soc/qcom/icnss_private.h
 +++ b/drivers/soc/qcom/icnss_private.h
 @@ -70,7 +70,7 @@
@@ -24,5 +24,5 @@ index 2aacf3bb1..59e215595 100644
  		     ##__VA_ARGS__);					\
  	} while (0)
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

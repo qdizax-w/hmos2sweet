@@ -23,7 +23,7 @@ for d in sorted(os.listdir(os.path.join(R, "patches"))):
     lst("Folders added to /vendor", [x["dst"] for x in p.get("vendor_dirs", [])])
     lst("Removed from /vendor", p.get("vendor_remove", []))
     lst("Removed from /system", p.get("system_remove", []))
-    lst("Taken from the sweet ROM", ["%s -> /vendor/%s" % (b["from"], b["to"]) for b in p.get("sweet_blobs", [])])
+    lst("Taken from the curtana ROM", ["%s -> /vendor/%s" % (b["from"], b["to"]) for b in p.get("sweet_blobs", [])])
     lst("Feature markers", p.get("markers", []))
     lst("ueventd", [l for l in p.get("ueventd", []) if not l.startswith("#")])
     init = p.get("init", {})

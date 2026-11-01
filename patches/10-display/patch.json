@@ -1,7 +1,7 @@
 {
   "name": "Display: DRM/KMS composer + buffer allocator",
   "default": true,
-  "description": "Replaces Huawei's display HALs with a DRM/KMS composer (atomic commits, vblank, 60/120 Hz modes, DPMS + backlight) and a dma-buf allocator for the sweet panel. Without it there is no picture.",
+  "description": "Replaces Huawei's display HALs with a DRM/KMS composer (atomic commits, vblank, 60 Hz mode, DPMS + backlight) and a dma-buf allocator for the curtana panel. Without it there is no picture.",
   "vendor_files": [
     {
       "src": "files/lib64/libdisplay_composer_vdi_impl.z.so",

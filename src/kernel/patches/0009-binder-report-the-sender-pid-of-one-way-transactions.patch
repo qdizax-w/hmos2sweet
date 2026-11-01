@@ -1,7 +1,7 @@
-From 793afe77522d2d8564821f6fbec49a105293f1d6 Mon Sep 17 00:00:00 2001
+From a5d6cdedce9e77c9b6b01ddecf5062a0acb350d1 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Mon, 19 Oct 2026 14:59:01 +0200
-Subject: [PATCH 09/12] binder: report the sender pid of one-way transactions
+Subject: [PATCH 09/18] binder: report the sender pid of one-way transactions
  (OpenHarmony)
 
 render_service and other OpenHarmony services check the calling pid of
@@ -15,10 +15,10 @@ Claude-Session: https://claude.ai/code/session_013BnD2kisuqqyfphx6EWB2p
  1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index 009e7848d..8b8e25190 100644
+index b03775faf..abeea84d0 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
-@@ -666,6 +666,10 @@ struct binder_transaction {
+@@ -676,6 +676,10 @@ struct binder_transaction {
  	u64 sender_tokenid;
  	u64 first_tokenid;
  #endif
@@ -29,7 +29,7 @@ index 009e7848d..8b8e25190 100644
  };
  
  /**
-@@ -3423,6 +3427,10 @@ static void binder_transaction(struct binder_proc *proc,
+@@ -3433,6 +3437,10 @@ static void binder_transaction(struct binder_proc *proc,
  		t->from = thread;
  	else
  		t->from = NULL;
@@ -40,7 +40,7 @@ index 009e7848d..8b8e25190 100644
  	t->sender_euid = task_euid(proc->tsk);
  #ifdef CONFIG_ACCESS_TOKENID
  	t->sender_tokenid = current->token;
-@@ -4709,10 +4717,10 @@ static int binder_thread_read(struct binder_proc *proc,
+@@ -4719,10 +4727,10 @@ static int binder_thread_read(struct binder_proc *proc,
  			binder_inner_proc_unlock(thread->proc);
  #endif
  		} else {
@@ -54,5 +54,5 @@ index 009e7848d..8b8e25190 100644
  #endif
  		}
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

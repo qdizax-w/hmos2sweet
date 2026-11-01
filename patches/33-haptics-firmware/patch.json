@@ -1,15 +1,22 @@
 {
   "name": "Vibration motor",
   "default": true,
-  "description": "aw8624 haptic driver firmware from the sweet ROM; the kernel also exposes the motor as /sys/class/leds/vibrator, which the vibrator HDI uses for timed vibrations (ringtone, notifications, touch feedback).",
+  "description": "aw8624 haptic driver firmware from the curtana ROM; the kernel also exposes the motor as /sys/class/leds/vibrator, which the vibrator HDI uses for timed vibrations. curtana units have either an aw8624 (supported) or a TI drv2624 motor; the drv2624 driver only offers /sys/class/timed_output/vibrator, so on those units vibration does not work yet.",
   "sweet_blobs": [
     {
       "from": "firmware/aw8624_haptic.bin",
-      "to": "firmware/aw8624_haptic.bin"
+      "to": "firmware/aw8624_haptic.bin",
+      "optional": true
     },
     {
-      "from": "firmware/aw8624_rtp.bin",
-      "to": "firmware/aw8624_rtp.bin"
+      "from": "firmware/aw8624_rtp_1.bin",
+      "to": "firmware/aw8624_rtp_1.bin",
+      "optional": true
+    },
+    {
+      "from": "firmware/osc_rtp_24K_5s.bin",
+      "to": "firmware/osc_rtp_24K_5s.bin",
+      "optional": true
     }
   ],
   "requires": [],

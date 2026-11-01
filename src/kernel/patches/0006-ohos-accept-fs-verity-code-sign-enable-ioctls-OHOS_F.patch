@@ -1,7 +1,7 @@
-From bfdf5dafbf4d9cfb9f4c139e38f87c809834baa7 Mon Sep 17 00:00:00 2001
+From 34e051a47d186e2520b437aab3132ba509bcb056 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Mon, 19 Oct 2026 06:33:19 +0200
-Subject: [PATCH 06/12] ohos: accept fs-verity/code-sign enable ioctls
+Subject: [PATCH 06/18] ohos: accept fs-verity/code-sign enable ioctls
  (OHOS_FSVERITY_STUB)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -63,5 +63,5 @@ index 9db5ddaf7..04e947d4c 100644
  	case FIOCLEX:
  		set_close_on_exec(fd, 1);
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

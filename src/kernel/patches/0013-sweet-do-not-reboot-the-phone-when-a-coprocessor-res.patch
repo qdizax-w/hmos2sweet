@@ -1,8 +1,8 @@
-From d0a3f530a761941665bc50fe995a8a1e527d4d91 Mon Sep 17 00:00:00 2001
+From d57b876fb281a1ade41c3377727a8ee498ff164d Mon Sep 17 00:00:00 2001
 From: hmos2sweet <hmos2sweet@localhost>
 Date: Tue, 20 Oct 2026 07:04:10 +0200
-Subject: [PATCH] sweet: do not reboot the phone when a coprocessor restart is
- slow
+Subject: [PATCH 13/18] sweet: do not reboot the phone when a coprocessor
+ restart is slow
 
 CONFIG_PANIC_ON_SSR_NOTIF_TIMEOUT panics after 20 s when a subsystem
 notifier blocks during a restart of the ADSP or the modem. On a port where
@@ -47,5 +47,5 @@ index ad509458d..96fee8af1 100644
  		}
  	} else
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

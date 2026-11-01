@@ -1,12 +1,17 @@
 # Rebuilding the binaries
 
+hmos2curtana needs two binaries that hmos2sweet does not ship: the curtana kernel and the curtana audio VDI.
+Everything else in `patches/*/files` is hmos2sweet's build, reused as is.
+
 `hmos2sweet.py` uses the binaries already built in `prebuilt/` and `patches/*/files/`. Rebuilding them is only
 needed if you change the sources in `src/`. All scripts are in `build/` and read their settings from
 `build/env.sh`.
 
 | Script | Produces | Needs |
 |---|---|---|
-| `build_kernel.sh` | `prebuilt/kernel/{Image.gz,xiaomi-sdmmagpie.dtb,dtbo.img}` | clang/lld 15+, `aarch64-linux-gnu-` and `arm-linux-gnueabi-` binutils |
+| `build_kernel.sh` | `prebuilt/kernel/{Image.gz,cust-atoll-ab.dtb,dtbo.img}` | Linux (case-sensitive FS), clang/lld 15+, `aarch64-linux-gnu-` and `arm-linux-gnueabi-` binutils |
+| `build_audio.sh` | only the audio VDI (patch 31), the one userspace binary hmos2curtana changes | sysroot (`make_sysroot.sh`), clang/lld 15+, llvm-strip |
+| `extract_ota_images.py <ota> <work>` | `<work>/ota/{system,vendor}.img` for `make_sysroot.sh` without a full conversion | Python 3 |
 | `build_static.sh` | hmos-preinit, sweet-rproc, qrtr/rmtfs/tqftpserv/pd-mapper, sweet-oobedone, sqlite3, CameraDaemon placeholder | `aarch64-linux-gnu-gcc` (static glibc) |
 | `fetch_oh_sources.sh` | OpenHarmony 5.1 sources (HDI/HDF headers, HUKS, OpenSSL) | git |
 | `make_sysroot.sh <work>` | HarmonyOS sysroot for `ohos-clang` | an hmos2sweet `work` folder (`ota/system.img`, `ota/vendor.img`) |
@@ -25,8 +30,11 @@ needed if you change the sources in `src/`. All scripts are in `build/` and read
     source);
   - the `.so` libraries to link against are copied from the OTA images, which is why `make_sysroot.sh` wants the
     `work` folder of a conversion.
-- **Kernel**: LineageOS `android_kernel_xiaomi_sm6150`, branch `lineage-24.0`, commit `e03e5ba22`, with
-  `vendor/sdmsteppe-perf_defconfig vendor/sweet.config vendor/ohos.config`.
+- **Kernel**: crDroid `android_kernel_xiaomi_sm6250`, branch `16.0`, commit `8b4afb3dd`, with
+  `vendor/xiaomi/miatoll_defconfig vendor/ohos.config`. LineageOS's sm6250 tree was not used because it has no
+  EROFS; crDroid's `fs/erofs` is byte-identical to the backport in LineageOS sm6150 that hmos2sweet runs on.
+- **CI**: `.github/workflows/build.yml` runs `build_kernel.sh` and (with an OTA download) `build_audio.sh` on
+  GitHub's Ubuntu runners and uploads a `curtana-prebuilts` artifact.
 - **Mesa**: `src/mesa/0001-mesa-ohos-platform-for-sweet.patch` was made on `mesa-for-android-container-adreno`
   26.1.0-devel. Other Mesa 26 versions may need small adjustments.
 - **Camera (work in progress)**: `src/camera/bridge/cambridge.c` is built for Android (bionic) with clang

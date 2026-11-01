@@ -1,10 +1,10 @@
 {
-  "name": "Fixed 120 Hz, LTPO off",
+  "name": "Fixed 60 Hz, LTPO off",
   "default": true,
   "requires": [
     "10-display"
   ],
-  "description": "The sweet panel has a single 120 Hz mode and no LTPO. Rewrites the frame-rate manager policy (HGM) from the OTA so every strategy asks for 120 Hz; the composer exposes a virtual 60 Hz mode for the rest.",
+  "description": "The curtana LCD has a single 60 Hz mode and no LTPO. Rewrites the frame-rate manager policy (HGM) from the OTA so every strategy asks for 60 Hz and the 90/120 Hz settings are gone.",
   "hook": "hook.py",
   "init": {
     "jobs": [

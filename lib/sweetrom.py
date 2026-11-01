@@ -1,9 +1,9 @@
-"""Get the Redmi Note 10 Pro (sweet) vendor blobs the port needs.
+"""Get the Redmi Note 9S (curtana) vendor blobs the port needs (module name kept from hmos2sweet).
 
 Accepted sources:
   * a flashable sweet ROM zip with block images (vendor.new.dat.br or
-    vendor.new.dat + vendor.transfer.list), e.g. LineageOS or most custom ROMs;
-  * a raw ext4 vendor.img dumped from a sweet ROM.
+    vendor.new.dat + vendor.transfer.list), e.g. LineageOS / crDroid for miatoll;
+  * a raw ext4 vendor.img dumped from a curtana (miatoll) ROM.
 
 Only firmware and audio configuration files are taken (list in each patch's
 "sweet_blobs"); they stay on your computer and are never part of the repo.
@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import zipfile
 
-from .util import die, info, tool, run, mkdirs
+from .util import Fatal, die, info, tool, run, mkdirs
 
 BLOCK = 4096
 
@@ -77,7 +77,7 @@ def _sdat2img(transfer_list, new_dat, out_img):
 def vendor_image(source, workdir):
     """Return the path of an ext4 sweet vendor image built from 'source'."""
     if not os.path.exists(source):
-        die("sweet ROM not found: %s" % source)
+        die("curtana ROM not found: %s" % source)
     if not zipfile.is_zipfile(source):
         return source  # raw vendor.img
     out = os.path.join(workdir, "sweet_vendor.img")
@@ -120,42 +120,60 @@ def _debugfs(img, cmd):
 def check_vendor(img):
     out, err = _debugfs(img, "ls -p /firmware")
     if "a630_sqe.fw" not in out:
-        die("%s does not look like a sweet vendor image (no /firmware/a630_sqe.fw)\n%s" % (img, err[-500:]))
+        die("%s does not look like a curtana/miatoll vendor image (no /firmware/a630_sqe.fw)\n%s" % (img, err[-500:]))
+    out, err = _debugfs(img, "ls -p /etc")
+    if "mixer_paths_wcd937x.xml" not in out:
+        die("%s has no /etc/mixer_paths_wcd937x.xml: not a miatoll (curtana) vendor image? "
+            "A sweet or other device ROM will not work." % img)
 
 
 def fetch(img, blobs, outdir):
-    """Copy blobs ([{"from": "firmware/x", "to": "firmware/x"}], trailing / = directory)."""
+    """Copy blobs ([{"from": "firmware/x", "to": "firmware/x"}], trailing / = directory).
+
+    A blob with "optional": true is skipped (with a note) when the ROM does not have it: curtana units ship
+    with either an aw8624 or a drv2624 vibration motor, and ROMs differ in which firmware they carry."""
     got = []
     for b in blobs:
-        src, dst = b["from"], os.path.join(outdir, b["to"])
-        if src.endswith("/"):
-            mkdirs(dst)
-            # a fresh folder for every directory blob: the previous one may not be removable
-            n = 0
-            while os.path.exists(os.path.join(outdir, ".rdump%d" % n)):
-                n += 1
-            tmp = mkdirs(os.path.join(outdir, ".rdump%d" % n))
-            _debugfs(img, "rdump /%s %s" % (src.rstrip("/"), tmp))
-            name = os.path.basename(src.rstrip("/"))
-            if not os.path.isdir(os.path.join(tmp, name)):
-                die("blob directory /%s not found in the sweet vendor image" % src)
-            for f in sorted(os.listdir(os.path.join(tmp, name))):
-                shutil.move(os.path.join(tmp, name, f), os.path.join(dst, f))
-                got.append(os.path.join(b["to"], f))
-            shutil.rmtree(tmp, ignore_errors=True)
-        else:
-            mkdirs(os.path.dirname(dst))
-            path = "/" + src
-            for _ in range(4):  # follow (vendor-relative) symlinks
-                st, _ = _debugfs(img, "stat %s" % path)
-                m = re.search(r'Fast link dest: "([^"]+)"', st)
-                if not m:
-                    break
-                tgt = m.group(1)
-                path = tgt[len("/vendor"):] if tgt.startswith("/vendor/") else \
-                    os.path.normpath(os.path.join(os.path.dirname(path), tgt))
-            _debugfs(img, "dump %s %s" % (path, dst))
-            if not os.path.isfile(dst) or os.path.getsize(dst) == 0:
-                die("blob /%s not found in the sweet vendor image" % src)
-            got.append(b["to"])
+        try:
+            got += _fetch_one(img, b, outdir)
+        except Fatal:
+            if not b.get("optional"):
+                raise
+            info("  optional blob /%s not in this ROM, skipped" % b["from"])
+    return got
+
+
+def _fetch_one(img, b, outdir):
+    got = []
+    src, dst = b["from"], os.path.join(outdir, b["to"])
+    if src.endswith("/"):
+        mkdirs(dst)
+        # a fresh folder for every directory blob: the previous one may not be removable
+        n = 0
+        while os.path.exists(os.path.join(outdir, ".rdump%d" % n)):
+            n += 1
+        tmp = mkdirs(os.path.join(outdir, ".rdump%d" % n))
+        _debugfs(img, "rdump /%s %s" % (src.rstrip("/"), tmp))
+        name = os.path.basename(src.rstrip("/"))
+        if not os.path.isdir(os.path.join(tmp, name)):
+            die("blob directory /%s not found in the curtana vendor image" % src)
+        for f in sorted(os.listdir(os.path.join(tmp, name))):
+            shutil.move(os.path.join(tmp, name, f), os.path.join(dst, f))
+            got.append(os.path.join(b["to"], f))
+        shutil.rmtree(tmp, ignore_errors=True)
+    else:
+        mkdirs(os.path.dirname(dst))
+        path = "/" + src
+        for _ in range(4):  # follow (vendor-relative) symlinks
+            st, _ = _debugfs(img, "stat %s" % path)
+            m = re.search(r'Fast link dest: "([^"]+)"', st)
+            if not m:
+                break
+            tgt = m.group(1)
+            path = tgt[len("/vendor"):] if tgt.startswith("/vendor/") else \
+                os.path.normpath(os.path.join(os.path.dirname(path), tgt))
+        _debugfs(img, "dump %s %s" % (path, dst))
+        if not os.path.isfile(dst) or os.path.getsize(dst) == 0:
+            die("blob /%s not found in the curtana vendor image" % src)
+        got.append(b["to"])
     return got

@@ -1,7 +1,7 @@
-From 889979fe33150e84af4d1c79386b3fc15512d36e Mon Sep 17 00:00:00 2001
+From b717caa8a3f506e6606350db66ef2dfdb5838a9a Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Sun, 18 Oct 2026 21:30:08 +0200
-Subject: [PATCH 04/12] ohos: emulate hmdfs/sharefs mounts for storage_daemon
+Subject: [PATCH 04/18] ohos: emulate hmdfs/sharefs mounts for storage_daemon
  (OHOS_FS_EMU)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -125,5 +125,5 @@ index d772fe46e..8f2f3a0ab 100644
  
  	kfree(options);
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

@@ -1,7 +1,7 @@
-From c28d9e208c01214147f225b2f58bc3c1a7b39a48 Mon Sep 17 00:00:00 2001
+From 86a3548bc4eb70ae2b1beab6c1487a5bbbb7e05b Mon Sep 17 00:00:00 2001
 From: hmos2sweet <hmos2sweet@localhost>
 Date: Sat, 24 Oct 2026 14:58:56 +0200
-Subject: [PATCH] nfc: /sys/nfc attributes for the HarmonyOS NFC stack
+Subject: [PATCH 17/18] nfc: /sys/nfc attributes for the HarmonyOS NFC stack
 
 Huawei's NFC HAL/NCI stack read their chip type, device node and
 configuration names from /sys/nfc; provide them for the PN553 on nq-nci.
@@ -15,12 +15,12 @@ Claude-Session: https://claude.ai/code/session_013BnD2kisuqqyfphx6ewb2p
  create mode 100644 drivers/nfc/ohos_nfc_sysfs.c
 
 diff --git a/drivers/nfc/Makefile b/drivers/nfc/Makefile
-index af7b01c5d..a9470e9a3 100644
+index 4e1db4e0c..fdabcc547 100644
 --- a/drivers/nfc/Makefile
 +++ b/drivers/nfc/Makefile
-@@ -21,3 +21,4 @@ obj-$(CONFIG_NFC_MAX32560)	+= max32560/
+@@ -20,3 +20,4 @@ obj-$(CONFIG_NFC_ST95HF)	+= st95hf/
+ obj-$(CONFIG_NFC_MAX32560)	+= max32560/
  obj-$(CONFIG_NFC_NQ)		+= nq-nci.o
- obj-$(CONFIG_NFC_NQ_PN80T)	+= nq-nci-pn80t.o
  obj-$(CONFIG_NTAG_NQ)		+= nq-ntag.o
 +obj-$(CONFIG_NFC_NQ_PN80T)	+= ohos_nfc_sysfs.o
 diff --git a/drivers/nfc/ohos_nfc_sysfs.c b/drivers/nfc/ohos_nfc_sysfs.c
@@ -175,5 +175,5 @@ index 000000000..002220b8a
 +MODULE_LICENSE("GPL v2");
 +MODULE_DESCRIPTION("HarmonyOS /sys/nfc attributes for sweet");
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

@@ -1,7 +1,7 @@
-From 3f70f0b2ea09dacfbdaec54213ce09375b034991 Mon Sep 17 00:00:00 2001
+From bfa5ff03c207aca6bb17ff2d14008447c302cb80 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Sun, 18 Oct 2026 21:43:12 +0200
-Subject: [PATCH 05/12] ohos_fs_emu: pass a full page of mount options to
+Subject: [PATCH 05/18] ohos_fs_emu: pass a full page of mount options to
  do_mount
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -37,5 +37,5 @@ index 8f2f3a0ab..a43d864c6 100644
  		goto out;
  	snprintf(p, PATH_MAX, "%s/device_view", dir);
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

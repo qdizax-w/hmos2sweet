@@ -1,8 +1,8 @@
-From a9c2c62d1a82c573e13331e0f78d41cb8ff733a8 Mon Sep 17 00:00:00 2001
+From 60de1a3ee141efe34df1f95dbabfe792f6c68041 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Sat, 24 Oct 2026 18:49:29 +0200
-Subject: [PATCH] reboot: log power off/restart requests, RESTART2("shutdown")
- powers off
+Subject: [PATCH 18/18] reboot: log power off/restart requests,
+ RESTART2("shutdown") powers off
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_013BnD2kisuQqYfpHx6EWB2p
@@ -37,5 +37,5 @@ index f37f22460..486c0c285 100644
  		break;
  
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

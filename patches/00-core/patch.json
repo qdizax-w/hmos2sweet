@@ -2,11 +2,11 @@
   "name": "Core: kernel, preinit, fstab",
   "required": true,
   "default": true,
-  "description": "LineageOS 4.14 sm6150 kernel with the OpenHarmony patches, hmos-preinit as /init (maps the super partition, kernel log to the cache partition), second-stage fstab for sweet. Always installed.",
+  "description": "crDroid 4.14 sm6250 (miatoll) kernel with the OpenHarmony patches, hmos-preinit as /init (maps the super partition, kernel log to the cache partition), second-stage fstab for curtana. Always installed.",
   "vendor_files": [
     {
-      "src": "files/etc/fstab.sweet",
-      "dst": "etc/fstab.sweet",
+      "src": "files/etc/fstab.curtana",
+      "dst": "etc/fstab.curtana",
       "mode": "0644",
       "uid": 0,
       "gid": 0

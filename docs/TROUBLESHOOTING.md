@@ -39,14 +39,17 @@ Useful hilog tags:
 | Bluetooth does not turn on | `sweet-bt:` lines in kmsg: chip version, crbtfw/crnv files, HCI reset answer |
 | Spontaneous reboots | run `get_logs` right after: `pstore/` and the `kmsg` of the previous boot show the cause; look for `crashed`, `critical`, `subsys-restart`, `Kernel panic`. Patch 15 removes the reboots for crashing services, kernel patch 0013 those for a slow ADSP/modem |
 | "Power off" restarts the phone | with a cable plugged in this is off-mode charging: since this release the phone stays off and charges. Without a cable, look for `hmos: power off requested` in pstore |
+| Black screen, no boot animation, back to fastboot | the kernel is the first thing to check on curtana: pstore after the reboot shows how far it got. The kernel is crDroid sm6250 + the OpenHarmony patches, built by `build/build_kernel.sh` |
 | PIN asked at boot although none was set | fixed in iter42 (user_auth HDI built for the HarmonyOS 5.x interface). If it comes back: `USER_AUTH_HDI` in hilog, "VerifyAuthToken bad param" means the interface does not match |
 | Sensors missing in apps | `sweet-sensors:` lines in kmsg: if it stays at "waiting for the SSC", the ADSP sensors domain did not start (see `hexagonrpcd`) |
 | `tqftpserv: read/write <file> -> error` in kmsg | file the modem asks the TFTP server for: if `wlanmdsp.mbn` or a readwrite folder is missing, WiFi does not start |
+| No sound on curtana | the audio HAL must be the curtana rebuild (patch 31 warns when it is hmos2sweet's). `sweet audio VDI (tinyalsa, curtana/atoll)` in hilog confirms it; `TAS2562 SmartPA on` / `speaker feedback pcm 32` show the amplifier state |
+| No vibration | only curtana units with the aw8624 motor are supported; drv2624 units have no `/sys/class/leds/vibrator` |
 | hdc does not see the phone | enable developer options and USB debugging; look for `a600000.dwc3` / `configfs` in kmsg |
 | Setup stuck on the WiFi screen | enable "Remove the setup wizard" (`--no-setup-wizard`) |
-| Camera | in progress (`src/camera`): Qualcomm CamX in an Android namespace + OpenHarmony camera host |
+| Camera | not on curtana: patch 47 is sweet's CamX bridge + blob list; it needs a curtana blob list |
 | Fingerprint | not ported: the sensor is handled by a trusted app in the Qualcomm TEE (QSEE) |
-| Proximity | sweet's sensor is ultrasonic (handled by the audio DSP), not included |
+| Proximity | not included (on miatoll it is part of the SSC/ADSP sensor set; untested) |
 | HEVC video above 1920 px | limit in the media service, patch 40 is not enough |
 
 ## Black screen
@@ -61,4 +64,5 @@ Useful hilog tags:
 
 ## Going back to Android
 
-Flash a sweet ROM from recovery. The ROM recreates Android's logical partitions in `super`.
+Flash a curtana / miatoll ROM (LineageOS, crDroid, MIUI fastboot ROM) from recovery or fastboot. The ROM recreates
+Android's logical partitions in `super`.

@@ -1,7 +1,7 @@
-From a3a9817314c24db0e632cda85f25f7f5fbe31efc Mon Sep 17 00:00:00 2001
+From c7914a1331ea97bed26a60d3bdd9c83617e34c7c Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Sun, 18 Oct 2026 20:48:11 +0200
-Subject: [PATCH 03/12] drm: let HarmonyOS display HALs take/drop master
+Subject: [PATCH 03/18] drm: let HarmonyOS display HALs take/drop master
  (OHOS_DRM_AUTH_ALL)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -34,5 +34,5 @@ index 013cc5a47..ef38c149c 100644
  	DRM_IOCTL_DEF(DRM_IOCTL_ADD_CTX, drm_legacy_addctx, DRM_AUTH|DRM_ROOT_ONLY),
  	DRM_IOCTL_DEF(DRM_IOCTL_RM_CTX, drm_legacy_rmctx, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 

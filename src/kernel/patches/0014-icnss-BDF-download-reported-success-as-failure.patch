@@ -1,7 +1,7 @@
-From 35cca0ebef184bfdbc3fbb9a39014c3c4366f069 Mon Sep 17 00:00:00 2001
+From e6015438d870587bbd9d236b6f688cb1b59dc249 Mon Sep 17 00:00:00 2001
 From: hmos2sweet <hmos2sweet@localhost>
 Date: Fri, 23 Oct 2026 22:03:08 +0200
-Subject: [PATCH] icnss: BDF download reported success as failure
+Subject: [PATCH 14/18] icnss: BDF download reported success as failure
 
 qmi_txn_wait() returns the decoded response length on success, so the
 segment loop ended with a positive value, the download was logged as
@@ -36,5 +36,5 @@ index bb7e02ea2..54789c6c9 100644
  	kfree(req);
  	kfree(resp);
 -- 
-2.43.0
+2.50.1 (Apple Git-155)
 
