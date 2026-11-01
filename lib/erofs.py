@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 from .util import die, info, tool, run, mkdirs, rmtree
 
@@ -245,6 +246,10 @@ class Tree:
     def build(self, out_image):
         info("building %s" % os.path.basename(out_image))
         cmd = [tool("mkfs.erofs"), "-z" + self.compression, "-T", "0"]
+        if sys.platform == "darwin":
+            # hmos2curtana: the macOS erofs-utils build crashes (SIGABRT/SIGSEGV) or writes corrupt data with
+            # its multi-threaded compressor; single-threaded it is reliable (and checked below)
+            cmd += ["--workers=1"]
         if self.uuid:
             cmd += ["-U", self.uuid]
         cmd += ["--mount-point=" + self.mount_point, "--fs-config-file=" + self.fs_config,
@@ -253,6 +258,21 @@ class Tree:
             os.remove(out_image)
         run(cmd)
         run([tool("fsck.erofs"), out_image])
+        if sys.platform == "darwin":
+            # plain fsck does not decompress the data: extract everything once to be sure
+            check = os.path.join(self.work, "verify")
+            rmtree(check)
+            info("verifying %s (full extraction)" % os.path.basename(out_image))
+            p = subprocess.run([tool("fsck.erofs"), "--extract=" + check, out_image],
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            for r, dirs, _ in os.walk(check):
+                for d in dirs:
+                    if not os.path.islink(os.path.join(r, d)):
+                        os.chmod(os.path.join(r, d), 0o755)
+            rmtree(check)
+            if p.returncode != 0:
+                die("%s failed verification (mkfs.erofs produced bad data)\n%s"
+                    % (out_image, p.stdout.decode(errors="replace")[-1500:]))
         return out_image
 
 
