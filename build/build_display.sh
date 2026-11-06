@@ -1,10 +1,13 @@
 #!/bin/bash
 # Display buffer + composer VDI (patch 10). Called by build_ohos.sh; CI runs it alone.
-# Needs: make_sysroot.sh and fetch_oh_sources.sh done first; clang/lld 15+, llvm-strip.
+# Needs: make_sysroot.sh done first; clang/lld 15+, llvm-strip, python3, git.
+# The headers must be OpenHarmony 5.0.3: 5.1.0 has other methods in the VDI interface (FastPresent,
+# UpdateHardwareCursor) and the composer service of the OTA calls this library by vtable slot.
 set -e
 . "$(dirname "$0")/env.sh"
 S=$REPO/src; P=$REPO/patches; B=$WORK/ohos; mkdir -p "$B"
-O=$OH_SRC
+O=$WORK/openharmony-5.0.3
+TAG=OpenHarmony-v5.0.3-Release OH_SRC=$O bash "$REPO/build/fetch_oh_sources.sh"
 CXX="ohos-clang++ -std=c++17 -O2 -fPIC -Wno-everything"
 BCF="$O/third_party_bounds_checking_function/include"
 
@@ -29,5 +32,7 @@ done
 ohos-clang++ -shared -o "$D/libdisplay_composer_vdi_impl.z.so" "$D"/obj/*.o -Wl,-soname,libdisplay_composer_vdi_impl.z.so \
   -L"$D" -ldisplay_buffer_vdi_impl.z -ldrm -lhilog -lhdf_utils.z -lsec_shared.z -lhitrace_meter -lutils.z -lc++ -lc
 llvm-strip "$D"/*.so
+python3 "$REPO/build/check_vtable.py" "$P/10-display/files/lib64/libdisplay_composer_vdi_impl.z.so" \
+  "$D/libdisplay_composer_vdi_impl.z.so"
 cp "$D"/libdisplay_buffer_vdi_impl.z.so "$D"/libdisplay_composer_vdi_impl.z.so "$P/10-display/files/lib64/"
 echo "display -> patches/10-display/files/lib64"

@@ -85,7 +85,6 @@ jobs:
           bash build/make_sysroot.sh "$RUNNER_TEMP/hm"
           export SYSROOT=$WORK/sysroot
           bash build/build_audio.sh
-          bash build/fetch_oh_sources.sh
           bash build/build_display.sh
       - uses: actions/upload-artifact@v4
         with:
