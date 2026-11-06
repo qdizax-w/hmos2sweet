@@ -60,6 +60,8 @@ static void HmosKlog(const char *fmt, ...)
 }
 static uint32_t g_hmosSavedLevel = 0;
 extern std::atomic<int> g_hmosVirtualMode;
+extern std::atomic<bool> g_hmosHasVirtualMode;
+extern std::atomic<uint64_t> g_hmosPanelPeriodNs;
 }
 }
 
@@ -126,15 +128,24 @@ int32_t DrmDisplay::GetDisplaySupportedModes(uint32_t *num, DisplayModeInfo *mod
 {
     uint32_t n = 0;
     mConnector->GetDisplaySupportedModes(&n, nullptr);
+    DisplayModeInfo only = {};
+    if (n == 1) {
+        mConnector->GetDisplaySupportedModes(&n, &only);
+    }
+    /* only a lone 120 Hz mode gets the virtual one: curtana's 60 Hz panel was
+     * reported with two modes, the second one never filled in */
+    bool addVirtual = (n == 1 && only.freshRate == 120);
+    g_hmosHasVirtualMode.store(addVirtual);
+    g_hmosPanelPeriodNs.store(addVirtual ? 8333333 : 16666667);
     if (modes != nullptr) {
         mConnector->GetDisplaySupportedModes(&n, modes);
-        if (n == 1 && modes[0].freshRate == 120) {
+        if (addVirtual) {
             modes[1] = modes[0];
             modes[1].id = 1;
             modes[1].freshRate = 60;
         }
     }
-    *num = (n == 1) ? 2 : n;
+    *num = addVirtual ? 2 : n;
     return DISPLAY_SUCCESS;
 }
 
@@ -152,7 +163,7 @@ int32_t DrmDisplay::GetDisplayMode(uint32_t *modeId)
 
 int32_t DrmDisplay::SetDisplayMode(uint32_t modeId)
 {
-    if (modeId == 1) {
+    if (modeId == 1 && g_hmosHasVirtualMode.load()) {
         g_hmosVirtualMode.store(1); /* virtual 60 Hz: same scanout, half the vsyncs */
         DISPLAY_LOGI("display mode 1 (60 Hz, virtual)");
         return DISPLAY_SUCCESS;

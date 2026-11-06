@@ -85,10 +85,14 @@ jobs:
           bash build/make_sysroot.sh "$RUNNER_TEMP/hm"
           export SYSROOT=$WORK/sysroot
           bash build/build_audio.sh
+          bash build/fetch_oh_sources.sh
+          bash build/build_display.sh
       - uses: actions/upload-artifact@v4
         with:
           name: audio
-          path: patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+          path: |
+            patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+            patches/10-display/files/lib64/
 
   collect:
     needs: [kernel, audio, preinit]
@@ -102,7 +106,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: audio
-          path: patches/31-audio/files/lib64/
+          path: patches/
       - uses: actions/download-artifact@v4
         with:
           name: preinit
@@ -114,6 +118,7 @@ jobs:
             prebuilt/kernel/
             prebuilt/ramdisk/init
             patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+            patches/10-display/files/lib64/
       - name: commit
         if: ${{ inputs.commit }}
         run: |
@@ -122,5 +127,5 @@ jobs:
           git rm -q --cached --ignore-unmatch prebuilt/kernel/xiaomi-sdmmagpie.dtb
           rm -f prebuilt/kernel/xiaomi-sdmmagpie.dtb
           chmod 755 prebuilt/ramdisk/init
-          git add prebuilt/kernel prebuilt/ramdisk/init patches/31-audio/files/lib64/libaudio_primary_impl.z.so
+          git add prebuilt/kernel prebuilt/ramdisk/init patches/31-audio/files/lib64/libaudio_primary_impl.z.so patches/10-display/files/lib64
           git commit -m "prebuilts: curtana kernel, audio VDI and hmos-preinit (CI build)" && git push || echo "nothing to commit"

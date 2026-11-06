@@ -29,6 +29,7 @@ namespace HDI {
 namespace DISPLAY {
 extern std::atomic<bool> g_hmosDisplayOff;
 extern std::atomic<int> g_hmosVirtualMode;
+extern std::atomic<uint64_t> g_hmosPanelPeriodNs;
 }
 }
 
@@ -117,10 +118,15 @@ uint64_t DrmVsyncWorker::WaitNextVBlank(unsigned int &sq)
         }
         pending = true;
     }
+    /* after a miss do not wait a full timeout again: on top of the sleep to the
+     * next software vsync it halved the fallback rate */
+    static bool missed = false;
     struct pollfd pfd = {fd, POLLIN, 0};
-    if (poll(&pfd, 1, 20) <= 0) {
+    if (poll(&pfd, 1, missed ? 1 : 20) <= 0) {
+        missed = true;
         return 0;
     }
+    missed = false;
     char buf[1024];
     ssize_t n = read(fd, buf, sizeof(buf));
     uint64_t ts = 0;
@@ -164,13 +170,13 @@ void DrmVsyncWorker::WorkThread()
         static int synthCount = 0;
         if (time == 0) {
             /* no real vblank: with the panel off stay quiet, otherwise keep a
-             * steady 120 Hz software vsync on the grid of the last real one,
+             * steady software vsync at the panel rate on the grid of the last real one,
              * never a zero timestamp (render_service drops those) */
             if (g_hmosDisplayOff.load()) {
                 usleep(16000);
                 continue;
             }
-            const uint64_t PERIOD = g_hmosVirtualMode.load() == 1 ? 16666667 : 8333333;
+            const uint64_t PERIOD = g_hmosVirtualMode.load() == 1 ? 16666667 : g_hmosPanelPeriodNs.load();
             struct timespec now;
             clock_gettime(CLOCK_MONOTONIC, &now);
             uint64_t n = (uint64_t)now.tv_sec * 1000000000ULL + (uint64_t)now.tv_nsec;

@@ -1,0 +1,44 @@
+{
+  "name": "Touch and UI responsiveness (Qualcomm boot tuning)",
+  "default": true,
+  "description": "Android applies its atoll tuning from init.qcom.post_boot.sh, which HarmonyOS never runs, so the phone ran on kernel defaults. Once boot completes a script turns core_ctl off, applies the stock big.LITTLE placement and frequency floors, enables the kernel touch boost on both clusters with an immediate move to the big cores, sets prefer_idle through schedtune, and gives multimodalinput and composer_host nice -20. It logs the resulting state to kmsg as curtana-tune.",
+  "vendor_files": [
+    {
+      "src": "files/etc/curtana_tune.sh",
+      "dst": "etc/sweet/curtana_tune.sh",
+      "mode": "0755"
+    }
+  ],
+  "init": {
+    "jobs": [
+      {
+        "name": "param:bootevent.boot.completed=true",
+        "condition": "bootevent.boot.completed=true",
+        "cmds": [
+          "start curtana_tune"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "curtana_tune",
+        "path": [
+          "/system/bin/sh",
+          "/vendor/etc/sweet/curtana_tune.sh"
+        ],
+        "uid": "root",
+        "gid": [
+          "root",
+          "system"
+        ],
+        "start-mode": "condition",
+        "secon": "u:r:init:s0",
+        "once": 1,
+        "sandbox": 0
+      }
+    ]
+  },
+  "requires": [
+    "16-performance"
+  ]
+}

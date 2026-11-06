@@ -51,6 +51,8 @@ HdiDrmComposition::HdiDrmComposition(const std::shared_ptr<DrmConnector> &connec
 
 std::atomic<bool> g_hmosDisplayOff{false};
 std::atomic<int> g_hmosVirtualMode{0};
+std::atomic<bool> g_hmosHasVirtualMode{false};
+std::atomic<uint64_t> g_hmosPanelPeriodNs{16666667};
 
 /* bootevent.boot.completed is set by init internally (no kmsg line), so ask
  * the parameter service directly; checked at most once per second */
